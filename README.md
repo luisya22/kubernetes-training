@@ -22,13 +22,16 @@ An interactive desktop application for learning Kubernetes from beginner to adva
 
 ### For End Users (Download Pre-built Installers)
 
-Download the latest release for your platform:
+**[🌐 Visit Download Page](https://YOUR-USERNAME.github.io/YOUR-REPO-NAME/)**
 
-**[📦 Download Latest Release](https://github.com/YOUR-USERNAME/YOUR-REPO-NAME/releases/latest)**
+Or download directly from GitHub:
 
-- **Windows**: Download and run the `.exe` installer
-- **macOS**: Download the `.dmg` file and drag to Applications
-- **Linux**: Download the `.AppImage` (universal) or `.deb` (Debian/Ubuntu)
+**[📦 Download Latest Release](https://github.com/luisya22/kubernetes-training/releases/latest)**
+
+Available for:
+- **Windows**: `.exe` installer
+- **macOS**: `.dmg` for Intel and Apple Silicon
+- **Linux**: `.AppImage` (universal) or `.deb` (Debian/Ubuntu)
 
 ### For Developers (Build from Source)
 
