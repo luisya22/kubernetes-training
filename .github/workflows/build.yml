@@ -14,6 +14,8 @@ jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
+    # Only run tests on PRs, not on tags
+    if: github.event_name == 'pull_request'
     
     steps:
       - name: Checkout code
