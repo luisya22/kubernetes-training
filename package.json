@@ -1,6 +1,6 @@
 {
   "name": "kubernetes-training-app",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Interactive Kubernetes training application with hands-on exercises",
   "main": "dist/main/main.js",
   "scripts": {
