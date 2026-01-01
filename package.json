@@ -15,11 +15,15 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "prebuild": "node scripts/pre-build-check.js",
+    "icons": "node scripts/generate-icons.js",
+    "check": "node scripts/check-build-setup.js",
     "package": "npm run build && electron-builder",
     "package:win": "npm run build && electron-builder --win",
     "package:mac": "npm run build && electron-builder --mac",
     "package:linux": "npm run build && electron-builder --linux",
-    "package:all": "npm run build && electron-builder -mwl"
+    "package:all": "npm run build && electron-builder -mwl",
+    "build:all": "node scripts/build-all.js all",
+    "dist": "node scripts/build-all.js"
   },
   "keywords": [
     "kubernetes",
@@ -27,7 +31,10 @@
     "education",
     "electron"
   ],
-  "author": "",
+  "author": {
+    "name": "Luis Matos Garcia",
+    "email": "lmatosgarcia2@gmail.com"
+  },
   "license": "MIT",
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
@@ -57,6 +64,7 @@
     "jest-environment-jsdom": "^30.2.0",
     "os-browserify": "^0.3.0",
     "path-browserify": "^1.0.1",
+    "png-to-ico": "^2.1.8",
     "process": "^0.11.10",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
@@ -110,7 +118,6 @@
           ]
         }
       ],
-      "icon": "build/icon.ico",
       "artifactName": "${productName}-Setup-${version}.${ext}"
     },
     "nsis": {
@@ -130,13 +137,11 @@
           ]
         }
       ],
-      "icon": "build/icon.icns",
       "category": "public.app-category.education",
       "artifactName": "${productName}-${version}-${arch}.${ext}"
     },
     "dmg": {
       "title": "${productName} ${version}",
-      "icon": "build/icon.icns",
       "contents": [
         {
           "x": 130,
@@ -165,7 +170,6 @@
           ]
         }
       ],
-      "icon": "build/icons",
       "category": "Education",
       "artifactName": "${productName}-${version}-${arch}.${ext}",
       "desktop": {

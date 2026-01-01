@@ -1,46 +1,89 @@
 #!/usr/bin/env node
 
 /**
- * Simple icon generator script
- * Creates placeholder icons for development/testing
+ * Icon Generation Script
+ * Generates platform-specific icons from a source PNG
  * 
- * For production, use proper icon generation tools or design software
+ * Requirements:
+ * - npm install --save-dev png-to-ico (for Windows .ico)
+ * - For macOS .icns: Use online converter or install iconutil (macOS only)
  */
 
 const fs = require('fs');
 const path = require('path');
 
-console.log('🎨 Generating placeholder icons...\n');
+const SOURCE_ICON = path.join(__dirname, '../build/icons/256x256.png');
+const BUILD_DIR = path.join(__dirname, '../build');
 
-// Check if we have the SVG source
-const svgPath = path.join(__dirname, '..', 'build', 'icon.svg');
-if (!fs.existsSync(svgPath)) {
-  console.error('❌ Source SVG not found at build/icon.svg');
-  process.exit(1);
+console.log('🎨 Icon Generation Script');
+console.log('========================\n');
+
+// Check if source icon exists
+if (!fs.existsSync(SOURCE_ICON)) {
+    console.error('❌ Source icon not found:', SOURCE_ICON);
+    console.log('\n📝 Please create a 256x256 PNG icon at:', SOURCE_ICON);
+    process.exit(1);
 }
 
-console.log('📝 Icon generation requires external tools:');
-console.log('');
-console.log('Option 1: Use ImageMagick (recommended)');
-console.log('  Install: https://imagemagick.org/script/download.php');
-console.log('  Then run: ./build/create-placeholder-icons.sh');
-console.log('');
-console.log('Option 2: Use electron-icon-builder');
-console.log('  Install: npm install -g electron-icon-builder');
-console.log('  Run: electron-icon-builder --input=build/icon.svg --output=build');
-console.log('');
-console.log('Option 3: Use online tools');
-console.log('  - https://www.electronjs.org/docs/latest/tutorial/application-distribution');
-console.log('  - https://icon.kitchen/');
-console.log('  - https://cloudconvert.com/');
-console.log('');
-console.log('Option 4: Manual creation');
-console.log('  Create the following files manually:');
-console.log('  - build/icon.ico (Windows)');
-console.log('  - build/icon.icns (macOS)');
-console.log('  - build/icons/*.png (Linux)');
-console.log('');
-console.log('For now, the build will use Electron\'s default icon.');
-console.log('This is fine for development and testing.');
-console.log('');
-console.log('✅ You can proceed with packaging using default icons.');
+console.log('✅ Source icon found:', SOURCE_ICON);
+
+// Generate Windows .ico
+async function generateWindowsIcon() {
+    try {
+        const pngToIco = require('png-to-ico');
+        const icoPath = path.join(BUILD_DIR, 'icon.ico');
+        
+        console.log('🪟 Generating Windows .ico...');
+        const icoBuffer = await pngToIco(SOURCE_ICON);
+        fs.writeFileSync(icoPath, icoBuffer);
+        console.log('✅ Windows icon created:', icoPath);
+    } catch (error) {
+        console.warn('⚠️  Could not generate .ico file:', error.message);
+        console.log('   Install with: npm install --save-dev png-to-ico');
+    }
+}
+
+// Instructions for macOS .icns
+function generateMacIcon() {
+    const icnsPath = path.join(BUILD_DIR, 'icon.icns');
+    
+    if (fs.existsSync(icnsPath)) {
+        console.log('✅ macOS icon already exists:', icnsPath);
+        return;
+    }
+    
+    console.log('\n🍎 macOS .icns generation:');
+    console.log('   Option 1: Use online converter (recommended)');
+    console.log('   - Visit: https://cloudconvert.com/png-to-icns');
+    console.log('   - Upload:', SOURCE_ICON);
+    console.log('   - Download and save to:', icnsPath);
+    console.log('\n   Option 2: Use iconutil (macOS only)');
+    console.log('   - Create iconset with multiple sizes');
+    console.log('   - Run: iconutil -c icns icon.iconset');
+}
+
+// Check Linux icons
+function checkLinuxIcons() {
+    const iconsDir = path.join(BUILD_DIR, 'icons');
+    
+    if (fs.existsSync(iconsDir) && fs.readdirSync(iconsDir).length > 0) {
+        console.log('✅ Linux icons directory exists:', iconsDir);
+    } else {
+        console.log('\n🐧 Linux icons:');
+        console.log('   Current 256x256.png is sufficient for AppImage/deb');
+        console.log('   For better quality, add multiple sizes: 16x16, 32x32, 48x48, 128x128, 256x256, 512x512');
+    }
+}
+
+// Run generation
+(async () => {
+    await generateWindowsIcon();
+    generateMacIcon();
+    checkLinuxIcons();
+    
+    console.log('\n✨ Icon generation complete!');
+    console.log('\n📦 Your build configuration is ready for:');
+    console.log('   - Windows: NSIS installer (.exe)');
+    console.log('   - macOS: DMG installer (Intel + Apple Silicon)');
+    console.log('   - Linux: AppImage + Debian package');
+})();
