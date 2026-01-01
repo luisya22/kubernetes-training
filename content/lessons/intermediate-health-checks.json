@@ -1,0 +1,75 @@
+{
+  "id": "intermediate-health-checks",
+  "title": "Health Checks and Probes",
+  "level": "intermediate",
+  "order": 5,
+  "concepts": ["liveness-probes", "readiness-probes", "startup-probes", "health-checks"],
+  "content": {
+    "introduction": "Health probes allow Kubernetes to monitor the health of your applications and take automatic action when problems occur. They are essential for building resilient, self-healing applications.",
+    "sections": [
+      {
+        "title": "Types of Probes",
+        "content": "Kubernetes supports three types of probes: Liveness (is the container alive?), Readiness (is the container ready to serve traffic?), and Startup (has the container started successfully?).",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: health-check-demo\nspec:\n  containers:\n  - name: app\n    image: myapp:latest\n    livenessProbe:\n      httpGet:\n        path: /healthz\n        port: 8080\n      initialDelaySeconds: 15\n      periodSeconds: 10\n    readinessProbe:\n      httpGet:\n        path: /ready\n        port: 8080\n      initialDelaySeconds: 5\n      periodSeconds: 5",
+            "explanation": "This Pod has both liveness and readiness probes using HTTP GET requests. Kubernetes will restart the container if liveness fails and remove it from service endpoints if readiness fails."
+          }
+        ]
+      },
+      {
+        "title": "Liveness Probes",
+        "content": "Liveness probes detect when a container is in a broken state and needs to be restarted. If a liveness probe fails, Kubernetes kills the container and restarts it according to the restart policy.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "livenessProbe:\n  exec:\n    command:\n    - cat\n    - /tmp/healthy\n  initialDelaySeconds: 5\n  periodSeconds: 5\n  failureThreshold: 3",
+            "explanation": "This liveness probe executes a command. If the file exists, the probe succeeds. After 3 consecutive failures, the container is restarted."
+          },
+          {
+            "language": "yaml",
+            "code": "livenessProbe:\n  tcpSocket:\n    port: 8080\n  initialDelaySeconds: 15\n  periodSeconds: 20",
+            "explanation": "This TCP socket probe checks if the port is open. Useful for applications that don't have HTTP endpoints."
+          }
+        ]
+      },
+      {
+        "title": "Readiness Probes",
+        "content": "Readiness probes determine when a container is ready to accept traffic. Pods that fail readiness checks are removed from Service endpoints, preventing traffic from reaching unhealthy instances.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "readinessProbe:\n  httpGet:\n    path: /api/health\n    port: 8080\n    httpHeaders:\n    - name: Custom-Header\n      value: Awesome\n  initialDelaySeconds: 10\n  periodSeconds: 5\n  successThreshold: 1\n  failureThreshold: 3",
+            "explanation": "This readiness probe includes custom HTTP headers. The container must pass 1 check to be ready, and fails after 3 consecutive failures."
+          }
+        ]
+      },
+      {
+        "title": "Startup Probes",
+        "content": "Startup probes are useful for slow-starting containers. They disable liveness and readiness checks until the container has started, preventing premature restarts.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "startupProbe:\n  httpGet:\n    path: /startup\n    port: 8080\n  failureThreshold: 30\n  periodSeconds: 10",
+            "explanation": "This startup probe allows up to 5 minutes (30 * 10s) for the application to start. Liveness and readiness probes are disabled until this succeeds."
+          }
+        ]
+      },
+      {
+        "title": "Probe Configuration Best Practices",
+        "content": "Configure probes carefully: set appropriate initialDelaySeconds to allow startup time, use reasonable periodSeconds to balance responsiveness and overhead, and set failureThreshold to avoid false positives.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "# Well-configured probes\nlivenessProbe:\n  httpGet:\n    path: /healthz\n    port: 8080\n  initialDelaySeconds: 30\n  periodSeconds: 10\n  timeoutSeconds: 5\n  failureThreshold: 3\nreadinessProbe:\n  httpGet:\n    path: /ready\n    port: 8080\n  initialDelaySeconds: 10\n  periodSeconds: 5\n  timeoutSeconds: 3\n  failureThreshold: 2",
+            "explanation": "Liveness has longer delays and more tolerance for failures. Readiness is more aggressive to quickly remove unhealthy pods from service."
+          }
+        ]
+      }
+    ],
+    "summary": "Health probes are critical for building resilient applications. Use liveness probes to restart unhealthy containers, readiness probes to control traffic flow, and startup probes for slow-starting applications."
+  },
+  "exercises": ["exercise-health-checks"],
+  "prerequisites": ["intermediate-resource-limits"]
+}

@@ -1,0 +1,59 @@
+{
+  "id": "intermediate-volumes",
+  "title": "Persistent Volumes and Storage",
+  "level": "intermediate",
+  "order": 2,
+  "concepts": ["persistent-volumes", "persistent-volume-claims", "storage", "stateful-apps"],
+  "content": {
+    "introduction": "Persistent Volumes (PVs) provide durable storage that persists beyond the lifecycle of individual Pods. They enable stateful applications to maintain data across Pod restarts and rescheduling.",
+    "sections": [
+      {
+        "title": "Understanding Storage in Kubernetes",
+        "content": "Kubernetes separates storage provisioning (PersistentVolume) from storage consumption (PersistentVolumeClaim). This abstraction allows developers to request storage without knowing the underlying infrastructure details.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: v1\nkind: PersistentVolume\nmetadata:\n  name: pv-data\nspec:\n  capacity:\n    storage: 10Gi\n  accessModes:\n  - ReadWriteOnce\n  persistentVolumeReclaimPolicy: Retain\n  storageClassName: standard\n  hostPath:\n    path: /mnt/data",
+            "explanation": "This PersistentVolume provides 10GB of storage using a hostPath (suitable for single-node testing)."
+          }
+        ]
+      },
+      {
+        "title": "Claiming Storage with PVCs",
+        "content": "PersistentVolumeClaims (PVCs) are requests for storage by users. Kubernetes binds PVCs to available PVs that match the requirements.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: pvc-data\nspec:\n  accessModes:\n  - ReadWriteOnce\n  resources:\n    requests:\n      storage: 5Gi\n  storageClassName: standard",
+            "explanation": "This PVC requests 5GB of storage. Kubernetes will bind it to a suitable PV."
+          }
+        ]
+      },
+      {
+        "title": "Using PVCs in Pods",
+        "content": "Once a PVC is bound to a PV, Pods can mount it as a volume.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: app-with-storage\nspec:\n  containers:\n  - name: app\n    image: nginx\n    volumeMounts:\n    - name: data-volume\n      mountPath: /usr/share/nginx/html\n  volumes:\n  - name: data-volume\n    persistentVolumeClaim:\n      claimName: pvc-data",
+            "explanation": "This Pod mounts the PVC at /usr/share/nginx/html. Data written here persists across Pod restarts."
+          }
+        ]
+      },
+      {
+        "title": "Storage Classes and Dynamic Provisioning",
+        "content": "StorageClasses enable dynamic provisioning of PVs. Instead of pre-creating PVs, they are created automatically when PVCs are requested.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: storage.k8s.io/v1\nkind: StorageClass\nmetadata:\n  name: fast-ssd\nprovisioner: kubernetes.io/aws-ebs\nparameters:\n  type: gp3\n  iopsPerGB: \"10\"",
+            "explanation": "This StorageClass provisions AWS EBS volumes with specific performance characteristics."
+          }
+        ]
+      }
+    ],
+    "summary": "Persistent Volumes enable stateful applications in Kubernetes. Use PVCs to request storage and StorageClasses for dynamic provisioning in production environments."
+  },
+  "exercises": ["exercise-volumes"],
+  "prerequisites": ["intermediate-configmaps"]
+}

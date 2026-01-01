@@ -1,0 +1,26 @@
+{
+  "id": "intermediate-configmaps",
+  "title": "ConfigMaps and Configuration Management",
+  "level": "intermediate",
+  "order": 0,
+  "concepts": ["configmaps", "configuration", "environment-variables"],
+  "content": {
+    "introduction": "ConfigMaps allow you to decouple configuration artifacts from image content to keep containerized applications portable.",
+    "sections": [
+      {
+        "title": "Creating ConfigMaps",
+        "content": "ConfigMaps can be created from literal values, files, or directories.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: app-config\ndata:\n  database_url: \"postgres://localhost:5432/mydb\"\n  log_level: \"info\"",
+            "explanation": "This ConfigMap stores application configuration as key-value pairs."
+          }
+        ]
+      }
+    ],
+    "summary": "ConfigMaps provide a way to inject configuration data into your applications without hardcoding values."
+  },
+  "exercises": ["exercise-configmap"],
+  "prerequisites": ["beginner-services"]
+}

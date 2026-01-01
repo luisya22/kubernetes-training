@@ -1,0 +1,74 @@
+{
+  "id": "beginner-deployments",
+  "title": "Deployments and ReplicaSets",
+  "level": "beginner",
+  "order": 2,
+  "concepts": ["deployments", "replicasets", "scaling", "rolling-updates"],
+  "content": {
+    "introduction": "Deployments provide declarative updates for Pods and ReplicaSets. They manage the lifecycle of your applications, including scaling and rolling updates.",
+    "sections": [
+      {
+        "title": "What is a Deployment?",
+        "content": "A Deployment manages a ReplicaSet, which in turn manages Pods. Deployments ensure that a specified number of Pod replicas are running at any given time.\n\nTo create a Deployment, you define it in a YAML file. Here's a complete example:",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: nginx-deployment\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: nginx\n  template:\n    metadata:\n      labels:\n        app: nginx\n    spec:\n      containers:\n      - name: nginx\n        image: nginx:1.14.2\n        ports:\n        - containerPort: 80",
+            "explanation": "This Deployment creates 3 replicas of an nginx Pod. The selector ensures the Deployment manages Pods with the label 'app: nginx'."
+          },
+          {
+            "language": "bash",
+            "code": "# Save the YAML above to a file called deployment.yaml, then run:\nkubectl apply -f deployment.yaml\n\n# Verify the deployment was created:\nkubectl get deployments\n\n# Check the pods created by the deployment:\nkubectl get pods -l app=nginx\n\n# Get detailed information about the deployment:\nkubectl describe deployment nginx-deployment",
+            "explanation": "Use 'kubectl apply' to create resources from YAML files. The -f flag specifies the file to use. You can verify your deployment with 'kubectl get' commands."
+          }
+        ]
+      },
+      {
+        "title": "Scaling Deployments",
+        "content": "You can easily scale your application by changing the number of replicas in a Deployment. There are two ways to do this:",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# Method 1: Use kubectl scale command\nkubectl scale deployment nginx-deployment --replicas=5\n\n# Verify the scaling:\nkubectl get deployment nginx-deployment\nkubectl get pods -l app=nginx",
+            "explanation": "The 'kubectl scale' command is the quickest way to change the number of replicas. Watch as Kubernetes automatically creates or removes pods to match your desired count."
+          },
+          {
+            "language": "bash",
+            "code": "# Method 2: Edit the YAML file and reapply\n# Change 'replicas: 3' to 'replicas: 5' in your deployment.yaml\n# Then run:\nkubectl apply -f deployment.yaml",
+            "explanation": "You can also edit your YAML file and reapply it. This method is better for tracking changes in version control."
+          }
+        ]
+      },
+      {
+        "title": "Rolling Updates",
+        "content": "Deployments support rolling updates, allowing you to update your application without downtime. Kubernetes gradually replaces old pods with new ones.",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# Update the container image to a new version:\nkubectl set image deployment/nginx-deployment nginx=nginx:1.16.1\n\n# Watch the rollout status:\nkubectl rollout status deployment/nginx-deployment\n\n# View rollout history:\nkubectl rollout history deployment/nginx-deployment",
+            "explanation": "The 'kubectl set image' command updates the container image. Kubernetes performs a rolling update, ensuring some pods are always available."
+          },
+          {
+            "language": "bash",
+            "code": "# If something goes wrong, you can rollback:\nkubectl rollout undo deployment/nginx-deployment\n\n# Or rollback to a specific revision:\nkubectl rollout undo deployment/nginx-deployment --to-revision=2",
+            "explanation": "The rollback feature lets you quickly revert to a previous version if an update causes issues."
+          }
+        ]
+      },
+      {
+        "title": "Common Deployment Commands",
+        "content": "Here's a quick reference of the most useful kubectl commands for working with Deployments:",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# Create a deployment from a YAML file:\nkubectl apply -f deployment.yaml\n\n# Create a deployment directly from command line:\nkubectl create deployment my-app --image=nginx:latest --replicas=3\n\n# List all deployments:\nkubectl get deployments\n\n# Get detailed info about a deployment:\nkubectl describe deployment my-app\n\n# Delete a deployment:\nkubectl delete deployment my-app\n\n# Edit a deployment (opens in editor):\nkubectl edit deployment my-app",
+            "explanation": "These are the essential commands you'll use daily when working with Deployments. The 'apply' command is preferred over 'create' because it can both create and update resources."
+          }
+        ]
+      }
+    ],
+    "summary": "Deployments are the recommended way to manage stateless applications in Kubernetes. They provide scaling, self-healing, and rolling update capabilities."
+  },
+  "exercises": ["exercise-create-deployment"],
+  "prerequisites": ["beginner-pods"]
+}

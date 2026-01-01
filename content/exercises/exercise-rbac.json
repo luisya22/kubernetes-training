@@ -1,0 +1,82 @@
+{
+  "id": "exercise-rbac",
+  "lessonId": "advanced-rbac",
+  "title": "Configure Role-Based Access Control",
+  "description": "Create Roles and RoleBindings to control access to Kubernetes resources",
+  "difficulty": "advanced",
+  "estimatedTime": 30,
+  "steps": [
+    {
+      "id": "step-1",
+      "order": 1,
+      "instruction": "Create a Role named 'pod-reader' in the default namespace that allows get, list, and watch operations on pods",
+      "expectedOutcome": "Role should be created with the specified permissions",
+      "hints": [
+        "Use apiGroups: [''] for core resources like pods",
+        "Specify resources: ['pods']",
+        "Specify verbs: ['get', 'list', 'watch']"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get role pod-reader -o jsonpath='{.rules[0].resources[0]}'",
+            "expectedOutput": "pods"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-2",
+      "order": 2,
+      "instruction": "Create a ServiceAccount named 'reader-sa' and bind it to the 'pod-reader' role using a RoleBinding",
+      "expectedOutcome": "ServiceAccount should have permissions to read pods",
+      "hints": [
+        "Create ServiceAccount with kubectl create serviceaccount",
+        "Create RoleBinding that references the Role and ServiceAccount",
+        "RoleBinding connects subjects (ServiceAccount) to roles"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get serviceaccount reader-sa -o jsonpath='{.metadata.name}'",
+            "expectedOutput": "reader-sa"
+          },
+          {
+            "command": "kubectl get rolebinding reader-binding -o jsonpath='{.roleRef.name}'",
+            "expectedOutput": "pod-reader"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-3",
+      "order": 3,
+      "instruction": "Clean up by deleting the Role, RoleBinding, and ServiceAccount.",
+      "expectedOutcome": "All RBAC resources should be deleted",
+      "hints": [
+        "Delete the RoleBinding: kubectl delete rolebinding pod-reader-binding",
+        "Delete the Role: kubectl delete role pod-reader",
+        "Delete the ServiceAccount: kubectl delete serviceaccount pod-reader-sa",
+        "Verify: kubectl get roles,rolebindings,serviceaccounts"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get role pod-reader 2>&1 | grep -q \"NotFound\" && echo \"deleted\" || echo \"exists\"",
+            "expectedOutput": "deleted"
+          }
+        ]
+      }
+    }
+  ],
+  "resources": [
+    {
+      "type": "yaml",
+      "name": "rbac.yaml",
+      "content": "apiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: reader-sa\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  name: pod-reader\nrules:\n- apiGroups: [\"\"]\n  resources: [\"pods\"]\n  verbs: [\"get\", \"list\", \"watch\"]\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  name: reader-binding\nsubjects:\n- kind: ServiceAccount\n  name: reader-sa\nroleRef:\n  kind: Role\n  name: pod-reader\n  apiGroup: rbac.authorization.k8s.io"
+    }
+  ]
+}

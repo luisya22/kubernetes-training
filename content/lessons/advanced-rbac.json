@@ -1,0 +1,107 @@
+{
+  "id": "advanced-rbac",
+  "title": "Role-Based Access Control (RBAC)",
+  "level": "advanced",
+  "order": 5,
+  "concepts": ["rbac", "security", "authorization", "service-accounts"],
+  "content": {
+    "introduction": "RBAC (Role-Based Access Control) regulates access to Kubernetes resources based on the roles of individual users or service accounts. It's essential for securing multi-tenant clusters and implementing the principle of least privilege.",
+    "sections": [
+      {
+        "title": "RBAC Components",
+        "content": "RBAC uses four main resources: Role (namespace-scoped permissions), ClusterRole (cluster-wide permissions), RoleBinding (grants Role to subjects in a namespace), and ClusterRoleBinding (grants ClusterRole cluster-wide).",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  name: pod-reader\n  namespace: development\nrules:\n- apiGroups: [\"\"]\n  resources: [\"pods\"]\n  verbs: [\"get\", \"list\", \"watch\"]",
+            "explanation": "This Role grants read-only access to Pods in the development namespace."
+          }
+        ]
+      },
+      {
+        "title": "Creating RoleBindings",
+        "content": "RoleBindings connect Roles to users, groups, or service accounts.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  name: read-pods\n  namespace: development\nsubjects:\n- kind: User\n  name: jane\n  apiGroup: rbac.authorization.k8s.io\n- kind: ServiceAccount\n  name: app-sa\n  namespace: development\nroleRef:\n  kind: Role\n  name: pod-reader\n  apiGroup: rbac.authorization.k8s.io",
+            "explanation": "This RoleBinding grants the pod-reader Role to user 'jane' and service account 'app-sa'."
+          }
+        ]
+      },
+      {
+        "title": "ClusterRoles and ClusterRoleBindings",
+        "content": "ClusterRoles define permissions across the entire cluster, including cluster-scoped resources like nodes.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRole\nmetadata:\n  name: node-reader\nrules:\n- apiGroups: [\"\"]\n  resources: [\"nodes\"]\n  verbs: [\"get\", \"list\", \"watch\"]\n- apiGroups: [\"\"]\n  resources: [\"persistentvolumes\"]\n  verbs: [\"get\", \"list\"]",
+            "explanation": "This ClusterRole grants read access to nodes and persistent volumes (cluster-scoped resources)."
+          },
+          {
+            "language": "yaml",
+            "code": "apiVersion: rbac.authorization.k8s.io/v1\nkind: ClusterRoleBinding\nmetadata:\n  name: read-nodes-global\nsubjects:\n- kind: Group\n  name: cluster-admins\n  apiGroup: rbac.authorization.k8s.io\nroleRef:\n  kind: ClusterRole\n  name: node-reader\n  apiGroup: rbac.authorization.k8s.io",
+            "explanation": "This ClusterRoleBinding grants the node-reader ClusterRole to the cluster-admins group."
+          }
+        ]
+      },
+      {
+        "title": "Service Accounts",
+        "content": "Service Accounts provide identities for Pods. Use them with RBAC to control what Pods can do in the cluster.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: v1\nkind: ServiceAccount\nmetadata:\n  name: app-service-account\n  namespace: production\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  name: configmap-updater\n  namespace: production\nrules:\n- apiGroups: [\"\"]\n  resources: [\"configmaps\"]\n  verbs: [\"get\", \"update\", \"patch\"]\n---\napiVersion: rbac.authorization.k8s.io/v1\nkind: RoleBinding\nmetadata:\n  name: app-configmap-access\n  namespace: production\nsubjects:\n- kind: ServiceAccount\n  name: app-service-account\n  namespace: production\nroleRef:\n  kind: Role\n  name: configmap-updater\n  apiGroup: rbac.authorization.k8s.io",
+            "explanation": "This creates a ServiceAccount with permission to update ConfigMaps in the production namespace."
+          },
+          {
+            "language": "yaml",
+            "code": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: app-pod\n  namespace: production\nspec:\n  serviceAccountName: app-service-account\n  containers:\n  - name: app\n    image: myapp:latest",
+            "explanation": "This Pod uses the app-service-account, inheriting its RBAC permissions."
+          }
+        ]
+      },
+      {
+        "title": "Common Permission Patterns",
+        "content": "Define Roles for common use cases like read-only access, deployment management, or full namespace admin.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  name: deployment-manager\n  namespace: production\nrules:\n- apiGroups: [\"apps\"]\n  resources: [\"deployments\", \"replicasets\"]\n  verbs: [\"get\", \"list\", \"watch\", \"create\", \"update\", \"patch\", \"delete\"]\n- apiGroups: [\"\"]\n  resources: [\"pods\", \"pods/log\"]\n  verbs: [\"get\", \"list\", \"watch\"]",
+            "explanation": "This Role allows full management of Deployments and read access to Pods and logs."
+          },
+          {
+            "language": "yaml",
+            "code": "apiVersion: rbac.authorization.k8s.io/v1\nkind: Role\nmetadata:\n  name: namespace-admin\n  namespace: development\nrules:\n- apiGroups: [\"*\"]\n  resources: [\"*\"]\n  verbs: [\"*\"]",
+            "explanation": "This Role grants full admin access to all resources in the development namespace."
+          }
+        ]
+      },
+      {
+        "title": "Testing RBAC Permissions",
+        "content": "Use kubectl auth can-i to test if a user or service account has specific permissions.",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# Check if current user can create deployments\nkubectl auth can-i create deployments\n\n# Check if service account can delete pods\nkubectl auth can-i delete pods --as=system:serviceaccount:production:app-sa -n production\n\n# List all permissions for a service account\nkubectl auth can-i --list --as=system:serviceaccount:production:app-sa -n production\n\n# View Role details\nkubectl describe role pod-reader -n development\n\n# View RoleBinding details\nkubectl describe rolebinding read-pods -n development",
+            "explanation": "These commands help you verify RBAC configurations and troubleshoot permission issues."
+          }
+        ]
+      },
+      {
+        "title": "RBAC Best Practices",
+        "content": "Follow the principle of least privilege: grant only the minimum permissions needed. Use namespaces to isolate resources. Regularly audit RBAC policies. Avoid using cluster-admin unless absolutely necessary.",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# List all ClusterRoleBindings (audit cluster-wide access)\nkubectl get clusterrolebindings\n\n# Find who has cluster-admin access\nkubectl get clusterrolebindings -o json | jq -r '.items[] | select(.roleRef.name==\"cluster-admin\") | .metadata.name'\n\n# List all RoleBindings in a namespace\nkubectl get rolebindings -n production",
+            "explanation": "Regular audits help identify overly permissive access and security risks."
+          }
+        ]
+      }
+    ],
+    "summary": "RBAC is essential for securing Kubernetes clusters. Use Roles and RoleBindings for namespace-scoped permissions, ClusterRoles for cluster-wide access, and always follow the principle of least privilege."
+  },
+  "exercises": ["exercise-rbac"],
+  "prerequisites": ["advanced-network-policies"]
+}

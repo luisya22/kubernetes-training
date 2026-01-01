@@ -1,0 +1,76 @@
+{
+  "id": "exercise-health-checks",
+  "lessonId": "intermediate-health-checks",
+  "title": "Configure Liveness and Readiness Probes",
+  "description": "Add health checks to ensure application reliability",
+  "difficulty": "intermediate",
+  "estimatedTime": 25,
+  "steps": [
+    {
+      "id": "step-1",
+      "order": 1,
+      "instruction": "Create a Deployment named 'healthy-app' with a liveness probe that checks HTTP GET on port 80 at path /healthz",
+      "expectedOutcome": "Deployment should have a liveness probe configured",
+      "hints": [
+        "Use livenessProbe with httpGet in the container spec",
+        "Set initialDelaySeconds to give the app time to start",
+        "Use nginx or a similar web server image"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get deployment healthy-app -o jsonpath='{.spec.template.spec.containers[0].livenessProbe.httpGet.path}'",
+            "expectedOutput": "/healthz"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-2",
+      "order": 2,
+      "instruction": "Add a readiness probe to the same deployment that checks HTTP GET on port 80 at path /ready",
+      "expectedOutcome": "Deployment should have both liveness and readiness probes",
+      "hints": [
+        "Use readinessProbe with httpGet",
+        "The readiness probe determines when the pod receives traffic",
+        "Update the deployment with kubectl apply"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get deployment healthy-app -o jsonpath='{.spec.template.spec.containers[0].readinessProbe.httpGet.path}'",
+            "expectedOutput": "/ready"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-3",
+      "order": 3,
+      "instruction": "Clean up by deleting the deployment with health checks.",
+      "expectedOutcome": "Deployment should be deleted",
+      "hints": [
+        "Delete the deployment: kubectl delete deployment healthy-app",
+        "Verify: kubectl get deployments"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get deployment healthy-app 2>&1 | grep -q \"NotFound\" && echo \"deleted\" || echo \"exists\"",
+            "expectedOutput": "deleted"
+          }
+        ]
+      }
+    }
+  ],
+  "resources": [
+    {
+      "type": "yaml",
+      "name": "health-check-deployment.yaml",
+      "content": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: healthy-app\nspec:\n  replicas: 2\n  selector:\n    matchLabels:\n      app: healthy-app\n  template:\n    metadata:\n      labels:\n        app: healthy-app\n    spec:\n      containers:\n      - name: nginx\n        image: nginx:latest\n        ports:\n        - containerPort: 80\n        livenessProbe:\n          httpGet:\n            path: /healthz\n            port: 80\n          initialDelaySeconds: 3\n          periodSeconds: 3\n        readinessProbe:\n          httpGet:\n            path: /ready\n            port: 80\n          initialDelaySeconds: 5\n          periodSeconds: 5"
+    }
+  ]
+}

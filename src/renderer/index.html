@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kubernetes Training Application</title>
+  <script>
+    // Polyfills for Node.js globals in browser environment (for webpack dev server)
+    (function() {
+      if (typeof global === 'undefined') {
+        window.global = window;
+      }
+      // Provide a require polyfill that returns empty objects for external modules
+      // This allows webpack-dev-server to work, but these modules won't function in browser
+      if (typeof require === 'undefined') {
+        window.require = function(module) {
+          // Return empty object for external modules to prevent errors
+          // These modules will only work in Electron, not in browser
+          console.warn('Module "' + module + '" is external and not available in browser. Please run in Electron for full functionality.');
+          return {};
+        };
+      }
+    })();
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+</body>
+</html>

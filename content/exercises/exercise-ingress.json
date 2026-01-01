@@ -1,0 +1,82 @@
+{
+  "id": "exercise-ingress",
+  "lessonId": "advanced-ingress",
+  "title": "Configure Ingress for HTTP Routing",
+  "description": "Set up an Ingress resource to route external traffic to services",
+  "difficulty": "advanced",
+  "estimatedTime": 30,
+  "steps": [
+    {
+      "id": "step-1",
+      "order": 1,
+      "instruction": "Create two Deployments: 'app-v1' and 'app-v2', each with a corresponding ClusterIP Service",
+      "expectedOutcome": "Both deployments and services should be running",
+      "hints": [
+        "Use simple images like nginx or httpd",
+        "Services should expose port 80",
+        "Label the deployments appropriately"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get service app-v1 -o jsonpath='{.spec.type}'",
+            "expectedOutput": "ClusterIP"
+          },
+          {
+            "command": "kubectl get service app-v2 -o jsonpath='{.spec.type}'",
+            "expectedOutput": "ClusterIP"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-2",
+      "order": 2,
+      "instruction": "Create an Ingress named 'app-ingress' that routes /v1 to app-v1 service and /v2 to app-v2 service",
+      "expectedOutcome": "Ingress should be created with path-based routing rules",
+      "hints": [
+        "Use path-based routing in the Ingress spec",
+        "Specify the service name and port for each path",
+        "Note: Ingress controller must be installed in the cluster"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get ingress app-ingress -o jsonpath='{.spec.rules[0].http.paths[0].path}'",
+            "expectedOutput": "/v1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-3",
+      "order": 3,
+      "instruction": "Clean up by deleting the Ingress, Service, and Deployment.",
+      "expectedOutcome": "All resources should be deleted",
+      "hints": [
+        "Delete the Ingress: kubectl delete ingress web-ingress",
+        "Delete the Service: kubectl delete service web-service",
+        "Delete the Deployment: kubectl delete deployment web-app",
+        "Verify: kubectl get ingress,services,deployments"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get ingress web-ingress 2>&1 | grep -q \"NotFound\" && echo \"deleted\" || echo \"exists\"",
+            "expectedOutput": "deleted"
+          }
+        ]
+      }
+    }
+  ],
+  "resources": [
+    {
+      "type": "yaml",
+      "name": "ingress.yaml",
+      "content": "apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: app-ingress\n  annotations:\n    nginx.ingress.kubernetes.io/rewrite-target: /\nspec:\n  rules:\n  - http:\n      paths:\n      - path: /v1\n        pathType: Prefix\n        backend:\n          service:\n            name: app-v1\n            port:\n              number: 80\n      - path: /v2\n        pathType: Prefix\n        backend:\n          service:\n            name: app-v2\n            port:\n              number: 80"
+    }
+  ]
+}

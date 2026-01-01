@@ -1,0 +1,53 @@
+{
+  "id": "beginner-pods",
+  "title": "Introduction to Pods",
+  "level": "beginner",
+  "order": 1,
+  "concepts": ["pods", "containers", "kubectl"],
+  "content": {
+    "introduction": "Pods are the smallest deployable units in Kubernetes. A Pod represents a single instance of a running process in your cluster.",
+    "sections": [
+      {
+        "title": "What is a Pod?",
+        "content": "A Pod encapsulates one or more containers, storage resources, a unique network IP, and options that govern how the containers should run.\n\nPods are defined using YAML files. Here's how to create one:",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: nginx-pod\nspec:\n  containers:\n  - name: nginx\n    image: nginx:latest\n    ports:\n    - containerPort: 80",
+            "explanation": "This is a simple Pod definition that runs an nginx container. Save this to a file called 'pod.yaml'."
+          },
+          {
+            "language": "bash",
+            "code": "# Create the pod from the YAML file:\nkubectl apply -f pod.yaml\n\n# Check if the pod is running:\nkubectl get pods\n\n# Get detailed information about the pod:\nkubectl describe pod nginx-pod\n\n# View the pod's logs:\nkubectl logs nginx-pod",
+            "explanation": "Use 'kubectl apply -f' to create resources from YAML files. The 'get', 'describe', and 'logs' commands help you monitor your pods."
+          }
+        ]
+      },
+      {
+        "title": "Creating Pods - Two Methods",
+        "content": "You can create pods in two ways: using YAML files (declarative) or using kubectl commands (imperative).",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# Method 1: Declarative (recommended) - using YAML\nkubectl apply -f pod.yaml\n\n# Method 2: Imperative - direct command\nkubectl run nginx-pod --image=nginx:latest --port=80",
+            "explanation": "The declarative approach (YAML files) is preferred because you can version control your configurations. The imperative approach is faster for quick tests."
+          }
+        ]
+      },
+      {
+        "title": "Common Pod Commands",
+        "content": "Here are the essential kubectl commands for working with Pods:",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# List all pods:\nkubectl get pods\n\n# Get detailed pod information:\nkubectl describe pod nginx-pod\n\n# View pod logs:\nkubectl logs nginx-pod\n\n# Execute a command inside a pod:\nkubectl exec -it nginx-pod -- /bin/bash\n\n# Delete a pod:\nkubectl delete pod nginx-pod\n\n# Delete a pod using the YAML file:\nkubectl delete -f pod.yaml",
+            "explanation": "These commands let you create, inspect, interact with, and delete pods. The 'exec' command is especially useful for debugging."
+          }
+        ]
+      }
+    ],
+    "summary": "You've learned the basics of Pods in Kubernetes. Pods are the fundamental building blocks for running applications."
+  },
+  "exercises": ["exercise-create-pod"],
+  "prerequisites": ["beginner-kubectl-basics"]
+}

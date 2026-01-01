@@ -1,0 +1,81 @@
+{
+  "id": "exercise-network-policies",
+  "lessonId": "advanced-network-policies",
+  "title": "Implement Network Policies",
+  "description": "Control network traffic between pods using NetworkPolicies",
+  "difficulty": "advanced",
+  "estimatedTime": 35,
+  "steps": [
+    {
+      "id": "step-1",
+      "order": 1,
+      "instruction": "Create a namespace 'secure' and deploy two pods: 'frontend' and 'backend' with appropriate labels",
+      "expectedOutcome": "Both pods should be running in the secure namespace",
+      "hints": [
+        "Label frontend with app=frontend",
+        "Label backend with app=backend",
+        "Use simple images like nginx"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get pod frontend -n secure -o jsonpath='{.metadata.labels.app}'",
+            "expectedOutput": "frontend"
+          },
+          {
+            "command": "kubectl get pod backend -n secure -o jsonpath='{.metadata.labels.app}'",
+            "expectedOutput": "backend"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-2",
+      "order": 2,
+      "instruction": "Create a NetworkPolicy named 'backend-policy' that only allows ingress traffic to 'backend' from pods labeled 'app=frontend'",
+      "expectedOutcome": "NetworkPolicy should restrict backend access to frontend pods only",
+      "hints": [
+        "Use podSelector to target the backend pod",
+        "Use ingress rules with podSelector to allow traffic from frontend",
+        "NetworkPolicy requires a CNI plugin that supports it"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get networkpolicy backend-policy -n secure -o jsonpath='{.spec.podSelector.matchLabels.app}'",
+            "expectedOutput": "backend"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-3",
+      "order": 3,
+      "instruction": "Clean up by deleting the NetworkPolicy and test pods.",
+      "expectedOutcome": "NetworkPolicy and pods should be deleted",
+      "hints": [
+        "Delete the NetworkPolicy: kubectl delete networkpolicy deny-all",
+        "Delete test pods: kubectl delete pod --all",
+        "Verify: kubectl get networkpolicies,pods"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get networkpolicy deny-all 2>&1 | grep -q \"NotFound\" && echo \"deleted\" || echo \"exists\"",
+            "expectedOutput": "deleted"
+          }
+        ]
+      }
+    }
+  ],
+  "resources": [
+    {
+      "type": "yaml",
+      "name": "network-policy.yaml",
+      "content": "apiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: backend-policy\n  namespace: secure\nspec:\n  podSelector:\n    matchLabels:\n      app: backend\n  policyTypes:\n  - Ingress\n  ingress:\n  - from:\n    - podSelector:\n        matchLabels:\n          app: frontend"
+    }
+  ]
+}

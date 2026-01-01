@@ -1,0 +1,81 @@
+{
+  "id": "exercise-create-deployment",
+  "lessonId": "beginner-deployments",
+  "title": "Create and Scale a Deployment",
+  "description": "Learn how to create a Deployment, scale it, and perform rolling updates",
+  "difficulty": "beginner",
+  "estimatedTime": 20,
+  "steps": [
+    {
+      "id": "step-1",
+      "order": 1,
+      "instruction": "Create a Deployment named 'web-app' with 3 replicas running nginx:1.14.2",
+      "expectedOutcome": "Deployment should be created with 3 running pods",
+      "hints": [
+        "Use kubectl create deployment or apply a YAML manifest",
+        "Verify with kubectl get deployments",
+        "Check that all 3 pods are running with kubectl get pods"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get deployment web-app -o jsonpath='{.spec.replicas}'",
+            "expectedOutput": "3"
+          },
+          {
+            "command": "kubectl get deployment web-app -o jsonpath='{.status.availableReplicas}'",
+            "expectedOutput": "3"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-2",
+      "order": 2,
+      "instruction": "Scale the deployment to 5 replicas",
+      "expectedOutcome": "Deployment should have 5 running replicas",
+      "hints": [
+        "Use kubectl scale deployment web-app --replicas=5",
+        "Wait for all pods to be ready"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get deployment web-app -o jsonpath='{.status.availableReplicas}'",
+            "expectedOutput": "5"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-3",
+      "order": 3,
+      "instruction": "Clean up by deleting the deployment. This will also delete all pods created by the deployment.",
+      "expectedOutcome": "Deployment and its pods should be deleted successfully",
+      "hints": [
+        "Use: kubectl delete deployment web-app",
+        "Wait a few seconds for the deletion to complete",
+        "Verify deletion: kubectl get deployments",
+        "All pods created by the deployment will also be deleted"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get deployment web-app 2>&1 | grep -q \"NotFound\" && echo \"deleted\" || echo \"exists\"",
+            "expectedOutput": "deleted"
+          }
+        ]
+      }
+    }
+  ],
+  "resources": [
+    {
+      "type": "yaml",
+      "name": "deployment-template.yaml",
+      "content": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: web-app\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: web-app\n  template:\n    metadata:\n      labels:\n        app: web-app\n    spec:\n      containers:\n      - name: nginx\n        image: nginx:1.14.2\n        ports:\n        - containerPort: 80"
+    }
+  ]
+}

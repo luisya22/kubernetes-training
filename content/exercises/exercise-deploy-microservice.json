@@ -1,0 +1,164 @@
+{
+  "id": "exercise-deploy-microservice",
+  "lessonId": "intermediate-services",
+  "title": "Deploy Multi-Service Application",
+  "description": "Deploy a multi-service application with service-to-service communication",
+  "difficulty": "intermediate",
+  "estimatedTime": 45,
+  "steps": [
+    {
+      "id": "step-1",
+      "order": 1,
+      "instruction": "Build and deploy the hello-service microservice",
+      "expectedOutcome": "hello-service pod is running and service is accessible",
+      "hints": [
+        "Use 'docker build' to create the image",
+        "Apply the deployment and service manifests",
+        "Check pod status with 'kubectl get pods'"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "resourceType": "deployment",
+            "name": "hello-service",
+            "namespace": "default"
+          },
+          {
+            "resourceType": "service",
+            "name": "hello-service",
+            "namespace": "default"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-2",
+      "order": 2,
+      "instruction": "Deploy Redis and the counter-service microservice",
+      "expectedOutcome": "Redis and counter-service pods are running, counter-service can connect to Redis",
+      "hints": [
+        "Deploy Redis first using the provided manifests",
+        "Build the counter-service image",
+        "Apply counter-service deployment and service manifests",
+        "Verify Redis connection in counter-service logs"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "resourceType": "deployment",
+            "name": "redis",
+            "namespace": "default"
+          },
+          {
+            "resourceType": "deployment",
+            "name": "counter-service",
+            "namespace": "default"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-3",
+      "order": 3,
+      "instruction": "Deploy the api-gateway that routes to both services",
+      "expectedOutcome": "api-gateway is running and can communicate with hello-service and counter-service",
+      "hints": [
+        "Build the api-gateway image",
+        "Apply the deployment and service manifests",
+        "The gateway uses service DNS names to communicate"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "resourceType": "deployment",
+            "name": "api-gateway",
+            "namespace": "default"
+          },
+          {
+            "resourceType": "service",
+            "name": "api-gateway",
+            "namespace": "default"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-4",
+      "order": 4,
+      "instruction": "Test service-to-service communication through the API gateway",
+      "expectedOutcome": "API gateway successfully routes requests to hello-service and counter-service",
+      "hints": [
+        "Port-forward to the api-gateway service",
+        "Test the /hello endpoint",
+        "Test the /counter endpoint",
+        "Test the /counter/increment endpoint"
+      ],
+      "validation": {
+        "type": "http",
+        "checks": [
+          {
+            "httpRequest": {
+              "url": "http://api-gateway/hello",
+              "method": "GET",
+              "expectedStatus": 200
+            }
+          },
+          {
+            "httpRequest": {
+              "url": "http://api-gateway/counter",
+              "method": "GET",
+              "expectedStatus": 200
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-5",
+      "order": 5,
+      "instruction": "Clean up by deleting all microservice deployments and services.",
+      "expectedOutcome": "All microservice resources should be deleted",
+      "hints": [
+        "Delete the api-gateway: kubectl delete deployment,service api-gateway",
+        "Delete the counter-service: kubectl delete deployment,service counter-service",
+        "Delete Redis: kubectl delete deployment,service redis",
+        "Delete the hello-service: kubectl delete deployment,service hello-service",
+        "Verify deletion: kubectl get deployments,services",
+        "This ensures a clean cluster for the next exercise"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get deployment api-gateway 2>&1 | grep -q 'NotFound' && echo 'deleted' || echo 'exists'",
+            "expectedOutput": "deleted"
+          },
+          {
+            "command": "kubectl get deployment hello-service 2>&1 | grep -q 'NotFound' && echo 'deleted' || echo 'exists'",
+            "expectedOutput": "deleted"
+          }
+        ]
+      }
+    }
+  ],
+  "resources": [
+    {
+      "type": "microservice",
+      "name": "hello-service",
+      "path": "content/microservices/hello-service"
+    },
+    {
+      "type": "microservice",
+      "name": "counter-service",
+      "path": "content/microservices/counter-service"
+    },
+    {
+      "type": "microservice",
+      "name": "api-gateway",
+      "path": "content/microservices/api-gateway"
+    }
+  ]
+}

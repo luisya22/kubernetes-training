@@ -1,0 +1,7 @@
+{
+  "id": "counter-service",
+  "name": "Counter Service",
+  "language": "python",
+  "sourceFile": "app.py",
+  "description": "A stateful service with persistent counter using Redis"
+}

@@ -1,0 +1,60 @@
+{
+  "id": "exercise-resource-limits",
+  "lessonId": "intermediate-resource-limits",
+  "title": "Set Resource Requests and Limits",
+  "description": "Configure CPU and memory resources for Pods",
+  "difficulty": "intermediate",
+  "estimatedTime": 20,
+  "steps": [
+    {
+      "id": "step-1",
+      "order": 1,
+      "instruction": "Create a Pod named 'resource-pod' with resource requests (cpu: 100m, memory: 128Mi) and limits (cpu: 200m, memory: 256Mi)",
+      "expectedOutcome": "Pod should be created with the specified resource constraints",
+      "hints": [
+        "Define resources in the container spec",
+        "Use the resources.requests and resources.limits fields",
+        "CPU is measured in millicores (m), memory in Mi or Gi"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get pod resource-pod -o jsonpath='{.spec.containers[0].resources.requests.cpu}'",
+            "expectedOutput": "100m"
+          },
+          {
+            "command": "kubectl get pod resource-pod -o jsonpath='{.spec.containers[0].resources.limits.memory}'",
+            "expectedOutput": "256Mi"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-2",
+      "order": 2,
+      "instruction": "Clean up by deleting the pod with resource limits.",
+      "expectedOutcome": "Pod should be deleted",
+      "hints": [
+        "Delete the pod: kubectl delete pod limited-pod",
+        "Verify: kubectl get pods"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get pod limited-pod 2>&1 | grep -q \"NotFound\" && echo \"deleted\" || echo \"exists\"",
+            "expectedOutput": "deleted"
+          }
+        ]
+      }
+    }
+  ],
+  "resources": [
+    {
+      "type": "yaml",
+      "name": "resource-pod.yaml",
+      "content": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: resource-pod\nspec:\n  containers:\n  - name: nginx\n    image: nginx:latest\n    resources:\n      requests:\n        cpu: 100m\n        memory: 128Mi\n      limits:\n        cpu: 200m\n        memory: 256Mi"
+    }
+  ]
+}

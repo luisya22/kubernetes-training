@@ -1,0 +1,7 @@
+{
+  "id": "api-gateway",
+  "name": "API Gateway",
+  "language": "go",
+  "sourceFile": "main.go",
+  "description": "A Go service that routes requests to other services"
+}

@@ -1,0 +1,81 @@
+{
+  "id": "advanced-ingress",
+  "title": "Ingress Controllers and HTTP Routing",
+  "level": "advanced",
+  "order": 3,
+  "concepts": ["ingress", "http-routing", "tls", "load-balancing"],
+  "content": {
+    "introduction": "Ingress provides HTTP and HTTPS routing to services within a cluster. It offers features like SSL/TLS termination, name-based virtual hosting, and path-based routing, consolidating routing rules into a single resource.",
+    "sections": [
+      {
+        "title": "Understanding Ingress",
+        "content": "An Ingress resource defines rules for routing external HTTP(S) traffic to services. An Ingress Controller (like nginx-ingress, Traefik, or HAProxy) implements these rules by configuring a load balancer.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: web-ingress\n  annotations:\n    nginx.ingress.kubernetes.io/rewrite-target: /\nspec:\n  rules:\n  - host: myapp.example.com\n    http:\n      paths:\n      - path: /\n        pathType: Prefix\n        backend:\n          service:\n            name: web-service\n            port:\n              number: 80",
+            "explanation": "This Ingress routes traffic from myapp.example.com to the web-service on port 80."
+          }
+        ]
+      },
+      {
+        "title": "Path-Based Routing",
+        "content": "Ingress can route different URL paths to different services, enabling microservices architecture with a single entry point.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: api-ingress\nspec:\n  rules:\n  - host: api.example.com\n    http:\n      paths:\n      - path: /users\n        pathType: Prefix\n        backend:\n          service:\n            name: user-service\n            port:\n              number: 8080\n      - path: /orders\n        pathType: Prefix\n        backend:\n          service:\n            name: order-service\n            port:\n              number: 8080\n      - path: /products\n        pathType: Prefix\n        backend:\n          service:\n            name: product-service\n            port:\n              number: 8080",
+            "explanation": "This Ingress routes /users, /orders, and /products to different microservices based on the URL path."
+          }
+        ]
+      },
+      {
+        "title": "Name-Based Virtual Hosting",
+        "content": "Ingress supports multiple hostnames, routing traffic to different services based on the Host header.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: multi-host-ingress\nspec:\n  rules:\n  - host: app1.example.com\n    http:\n      paths:\n      - path: /\n        pathType: Prefix\n        backend:\n          service:\n            name: app1-service\n            port:\n              number: 80\n  - host: app2.example.com\n    http:\n      paths:\n      - path: /\n        pathType: Prefix\n        backend:\n          service:\n            name: app2-service\n            port:\n              number: 80",
+            "explanation": "This Ingress routes app1.example.com and app2.example.com to different services."
+          }
+        ]
+      },
+      {
+        "title": "TLS/SSL Termination",
+        "content": "Ingress can terminate TLS/SSL connections, decrypting HTTPS traffic before routing to backend services.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: tls-ingress\nspec:\n  tls:\n  - hosts:\n    - secure.example.com\n    secretName: tls-secret\n  rules:\n  - host: secure.example.com\n    http:\n      paths:\n      - path: /\n        pathType: Prefix\n        backend:\n          service:\n            name: secure-service\n            port:\n              number: 80",
+            "explanation": "This Ingress terminates TLS using the certificate in tls-secret. Create the secret with: kubectl create secret tls tls-secret --cert=cert.pem --key=key.pem"
+          }
+        ]
+      },
+      {
+        "title": "Ingress Controllers",
+        "content": "Different Ingress Controllers offer various features. Popular options include NGINX Ingress Controller, Traefik, HAProxy, and cloud-provider controllers (AWS ALB, GCE).",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# Install NGINX Ingress Controller\nkubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.5.1/deploy/static/provider/cloud/deploy.yaml\n\n# Verify installation\nkubectl get pods -n ingress-nginx\n\n# View Ingress Controller service\nkubectl get svc -n ingress-nginx",
+            "explanation": "Install and verify the NGINX Ingress Controller. The controller watches for Ingress resources and configures routing accordingly."
+          }
+        ]
+      },
+      {
+        "title": "Advanced Annotations",
+        "content": "Ingress Controllers support annotations for advanced features like rate limiting, authentication, and custom routing.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: networking.k8s.io/v1\nkind: Ingress\nmetadata:\n  name: advanced-ingress\n  annotations:\n    nginx.ingress.kubernetes.io/rate-limit: \"100\"\n    nginx.ingress.kubernetes.io/ssl-redirect: \"true\"\n    nginx.ingress.kubernetes.io/auth-type: basic\n    nginx.ingress.kubernetes.io/auth-secret: basic-auth\n    nginx.ingress.kubernetes.io/cors-allow-origin: \"*\"\nspec:\n  rules:\n  - host: api.example.com\n    http:\n      paths:\n      - path: /\n        pathType: Prefix\n        backend:\n          service:\n            name: api-service\n            port:\n              number: 8080",
+            "explanation": "This Ingress uses annotations for rate limiting, SSL redirect, basic authentication, and CORS configuration."
+          }
+        ]
+      }
+    ],
+    "summary": "Ingress provides powerful HTTP(S) routing capabilities, consolidating external access to your services. Choose an Ingress Controller that fits your needs and use annotations for advanced features."
+  },
+  "exercises": ["exercise-ingress"],
+  "prerequisites": ["advanced-daemonsets"]
+}

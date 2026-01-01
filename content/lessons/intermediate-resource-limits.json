@@ -1,0 +1,59 @@
+{
+  "id": "intermediate-resource-limits",
+  "title": "Resource Requests and Limits",
+  "level": "intermediate",
+  "order": 4,
+  "concepts": ["resource-management", "requests", "limits", "qos"],
+  "content": {
+    "introduction": "Resource requests and limits control how much CPU and memory your containers can use. They ensure fair resource allocation and prevent any single application from consuming all cluster resources.",
+    "sections": [
+      {
+        "title": "Understanding Requests and Limits",
+        "content": "Requests define the minimum resources guaranteed to a container. Limits define the maximum resources a container can use. The scheduler uses requests to decide which node to place a Pod on.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: resource-demo\nspec:\n  containers:\n  - name: app\n    image: nginx\n    resources:\n      requests:\n        memory: \"64Mi\"\n        cpu: \"250m\"\n      limits:\n        memory: \"128Mi\"\n        cpu: \"500m\"",
+            "explanation": "This Pod requests 64MB memory and 0.25 CPU cores, with limits of 128MB and 0.5 cores. CPU is measured in millicores (1000m = 1 core)."
+          }
+        ]
+      },
+      {
+        "title": "Quality of Service (QoS) Classes",
+        "content": "Kubernetes assigns QoS classes based on requests and limits: Guaranteed (requests = limits), Burstable (requests < limits), and BestEffort (no requests/limits). QoS affects eviction priority when nodes run out of resources.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "# Guaranteed QoS\napiVersion: v1\nkind: Pod\nmetadata:\n  name: guaranteed-pod\nspec:\n  containers:\n  - name: app\n    image: nginx\n    resources:\n      requests:\n        memory: \"128Mi\"\n        cpu: \"500m\"\n      limits:\n        memory: \"128Mi\"\n        cpu: \"500m\"",
+            "explanation": "When requests equal limits for all resources, the Pod gets Guaranteed QoS (highest priority)."
+          }
+        ]
+      },
+      {
+        "title": "LimitRanges",
+        "content": "LimitRanges set default requests/limits and enforce min/max constraints for containers in a namespace.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: v1\nkind: LimitRange\nmetadata:\n  name: resource-constraints\n  namespace: development\nspec:\n  limits:\n  - max:\n      cpu: \"2\"\n      memory: \"2Gi\"\n    min:\n      cpu: \"100m\"\n      memory: \"64Mi\"\n    default:\n      cpu: \"500m\"\n      memory: \"256Mi\"\n    defaultRequest:\n      cpu: \"250m\"\n      memory: \"128Mi\"\n    type: Container",
+            "explanation": "This LimitRange enforces resource constraints and provides defaults for containers without explicit requests/limits."
+          }
+        ]
+      },
+      {
+        "title": "Monitoring Resource Usage",
+        "content": "Use kubectl top to monitor actual resource consumption and adjust requests/limits accordingly.",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# View Pod resource usage\nkubectl top pods\n\n# View Node resource usage\nkubectl top nodes\n\n# View resource usage for specific namespace\nkubectl top pods -n development",
+            "explanation": "These commands show actual CPU and memory usage. Compare with requests/limits to optimize resource allocation."
+          }
+        ]
+      }
+    ],
+    "summary": "Resource requests and limits are essential for efficient cluster utilization. Set appropriate values based on actual usage patterns to ensure stability and fair resource sharing."
+  },
+  "exercises": ["exercise-resource-limits"],
+  "prerequisites": ["intermediate-namespaces"]
+}

@@ -1,0 +1,92 @@
+{
+  "id": "advanced-network-policies",
+  "title": "Network Policies and Security",
+  "level": "advanced",
+  "order": 4,
+  "concepts": ["network-policies", "security", "pod-isolation", "traffic-control"],
+  "content": {
+    "introduction": "Network Policies provide fine-grained control over network traffic between Pods. They act as a firewall for your cluster, allowing you to define which Pods can communicate with each other and with external endpoints.",
+    "sections": [
+      {
+        "title": "Understanding Network Policies",
+        "content": "By default, Pods accept traffic from any source. Network Policies use label selectors to specify which Pods the policy applies to and define ingress (incoming) and egress (outgoing) rules.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: deny-all-ingress\n  namespace: production\nspec:\n  podSelector: {}\n  policyTypes:\n  - Ingress",
+            "explanation": "This policy denies all ingress traffic to all Pods in the production namespace. It's a secure default that you can then selectively open."
+          }
+        ]
+      },
+      {
+        "title": "Allowing Specific Traffic",
+        "content": "Define ingress rules to allow traffic from specific Pods, namespaces, or IP ranges.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: allow-frontend-to-backend\n  namespace: production\nspec:\n  podSelector:\n    matchLabels:\n      app: backend\n  policyTypes:\n  - Ingress\n  ingress:\n  - from:\n    - podSelector:\n        matchLabels:\n          app: frontend\n    ports:\n    - protocol: TCP\n      port: 8080",
+            "explanation": "This policy allows Pods labeled 'app: frontend' to connect to Pods labeled 'app: backend' on port 8080."
+          }
+        ]
+      },
+      {
+        "title": "Namespace-Based Rules",
+        "content": "Control traffic between namespaces using namespaceSelector.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: allow-from-monitoring\n  namespace: production\nspec:\n  podSelector:\n    matchLabels:\n      app: api\n  policyTypes:\n  - Ingress\n  ingress:\n  - from:\n    - namespaceSelector:\n        matchLabels:\n          name: monitoring\n    ports:\n    - protocol: TCP\n      port: 9090",
+            "explanation": "This policy allows traffic from any Pod in the 'monitoring' namespace to reach api Pods on port 9090."
+          }
+        ]
+      },
+      {
+        "title": "Egress Rules",
+        "content": "Control outgoing traffic from Pods to other Pods or external endpoints.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: allow-dns-and-api\n  namespace: production\nspec:\n  podSelector:\n    matchLabels:\n      app: frontend\n  policyTypes:\n  - Egress\n  egress:\n  - to:\n    - podSelector:\n        matchLabels:\n          app: backend\n    ports:\n    - protocol: TCP\n      port: 8080\n  - to:\n    - namespaceSelector:\n        matchLabels:\n          name: kube-system\n      podSelector:\n        matchLabels:\n          k8s-app: kube-dns\n    ports:\n    - protocol: UDP\n      port: 53",
+            "explanation": "This policy allows frontend Pods to connect to backend Pods and to DNS (kube-dns) for name resolution."
+          }
+        ]
+      },
+      {
+        "title": "IP Block Rules",
+        "content": "Allow or deny traffic based on IP address ranges, useful for external services.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: allow-external-database\n  namespace: production\nspec:\n  podSelector:\n    matchLabels:\n      app: api\n  policyTypes:\n  - Egress\n  egress:\n  - to:\n    - ipBlock:\n        cidr: 10.0.0.0/24\n        except:\n        - 10.0.0.5/32\n    ports:\n    - protocol: TCP\n      port: 5432",
+            "explanation": "This policy allows api Pods to connect to PostgreSQL databases in the 10.0.0.0/24 range, except 10.0.0.5."
+          }
+        ]
+      },
+      {
+        "title": "Combined Ingress and Egress",
+        "content": "Create comprehensive policies that control both incoming and outgoing traffic.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: api-network-policy\n  namespace: production\nspec:\n  podSelector:\n    matchLabels:\n      app: api\n  policyTypes:\n  - Ingress\n  - Egress\n  ingress:\n  - from:\n    - podSelector:\n        matchLabels:\n          app: frontend\n    ports:\n    - protocol: TCP\n      port: 8080\n  egress:\n  - to:\n    - podSelector:\n        matchLabels:\n          app: database\n    ports:\n    - protocol: TCP\n      port: 5432\n  - to:\n    - namespaceSelector: {}\n      podSelector:\n        matchLabels:\n          k8s-app: kube-dns\n    ports:\n    - protocol: UDP\n      port: 53",
+            "explanation": "This policy allows api Pods to receive traffic from frontend, connect to database, and use DNS."
+          }
+        ]
+      },
+      {
+        "title": "Network Policy Requirements",
+        "content": "Network Policies require a network plugin that supports them (Calico, Cilium, Weave Net). Not all clusters have this enabled by default.",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# Test if Network Policies are supported\nkubectl create namespace test-netpol\nkubectl apply -f - <<EOF\napiVersion: networking.k8s.io/v1\nkind: NetworkPolicy\nmetadata:\n  name: test-policy\n  namespace: test-netpol\nspec:\n  podSelector: {}\n  policyTypes:\n  - Ingress\nEOF\n\n# Check if policy was created\nkubectl get networkpolicy -n test-netpol\n\n# Clean up\nkubectl delete namespace test-netpol",
+            "explanation": "Use this test to verify your cluster supports Network Policies."
+          }
+        ]
+      }
+    ],
+    "summary": "Network Policies provide essential security controls for your cluster. Start with deny-all policies and selectively allow required traffic. Remember that Network Policies require a compatible network plugin."
+  },
+  "exercises": ["exercise-network-policies"],
+  "prerequisites": ["advanced-ingress"]
+}

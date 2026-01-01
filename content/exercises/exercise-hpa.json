@@ -1,0 +1,81 @@
+{
+  "id": "exercise-hpa",
+  "lessonId": "intermediate-hpa",
+  "title": "Configure Horizontal Pod Autoscaling",
+  "description": "Set up automatic scaling based on CPU utilization",
+  "difficulty": "intermediate",
+  "estimatedTime": 30,
+  "steps": [
+    {
+      "id": "step-1",
+      "order": 1,
+      "instruction": "Create a Deployment named 'scalable-app' with resource requests (cpu: 100m) and 1 replica",
+      "expectedOutcome": "Deployment should be running with resource requests defined",
+      "hints": [
+        "Resource requests are required for HPA to work",
+        "Use a simple image like nginx",
+        "Ensure the pod has CPU requests specified"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get deployment scalable-app -o jsonpath='{.spec.template.spec.containers[0].resources.requests.cpu}'",
+            "expectedOutput": "100m"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-2",
+      "order": 2,
+      "instruction": "Create a HorizontalPodAutoscaler for 'scalable-app' that scales between 1-5 replicas at 50% CPU utilization",
+      "expectedOutcome": "HPA should be created and monitoring the deployment",
+      "hints": [
+        "Use kubectl autoscale deployment scalable-app --min=1 --max=5 --cpu-percent=50",
+        "Or create an HPA YAML manifest",
+        "Verify with kubectl get hpa"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get hpa scalable-app -o jsonpath='{.spec.minReplicas}'",
+            "expectedOutput": "1"
+          },
+          {
+            "command": "kubectl get hpa scalable-app -o jsonpath='{.spec.maxReplicas}'",
+            "expectedOutput": "5"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-3",
+      "order": 3,
+      "instruction": "Clean up by deleting the HorizontalPodAutoscaler and deployment.",
+      "expectedOutcome": "HPA and deployment should be deleted",
+      "hints": [
+        "Delete the HPA: kubectl delete hpa php-apache",
+        "Delete the deployment: kubectl delete deployment php-apache",
+        "Verify: kubectl get hpa,deployments"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get hpa php-apache 2>&1 | grep -q \"NotFound\" && echo \"deleted\" || echo \"exists\"",
+            "expectedOutput": "deleted"
+          }
+        ]
+      }
+    }
+  ],
+  "resources": [
+    {
+      "type": "yaml",
+      "name": "hpa.yaml",
+      "content": "apiVersion: autoscaling/v2\nkind: HorizontalPodAutoscaler\nmetadata:\n  name: scalable-app\nspec:\n  scaleTargetRef:\n    apiVersion: apps/v1\n    kind: Deployment\n    name: scalable-app\n  minReplicas: 1\n  maxReplicas: 5\n  metrics:\n  - type: Resource\n    resource:\n      name: cpu\n      target:\n        type: Utilization\n        averageUtilization: 50"
+    }
+  ]
+}

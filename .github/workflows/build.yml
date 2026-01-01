@@ -1,0 +1,151 @@
+name: Build and Package
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run tests
+        run: npm test
+  
+  build:
+    name: Build on ${{ matrix.os }}
+    needs: test
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build application
+        run: npm run build
+      
+      - name: Package application
+        run: npm run package
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Upload artifacts (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-installers
+          path: |
+            release/*.AppImage
+            release/*.deb
+      
+      - name: Upload artifacts (macOS)
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-installers
+          path: release/*.dmg
+      
+      - name: Upload artifacts (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-installers
+          path: release/*.exe
+  
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+      
+      - name: Display structure of downloaded files
+        run: ls -R
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            linux-installers/*
+            macos-installers/*
+            windows-installers/*
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          body: |
+            ## 🎓 Kubernetes Training Application v${{ github.ref_name }}
+            
+            Interactive desktop application for learning Kubernetes from beginner to advanced levels.
+            
+            ### 📦 Downloads
+            
+            **Windows:**
+            - Download the `.exe` installer below
+            - Run the installer and follow the setup wizard
+            
+            **macOS:**
+            - Download the `.dmg` file for your architecture (Intel: x64, Apple Silicon: arm64)
+            - Open the DMG and drag the app to Applications
+            
+            **Linux:**
+            - **AppImage** (Universal): Download, make executable (`chmod +x`), and run
+            - **Debian/Ubuntu**: Download the `.deb` file and install with `sudo dpkg -i`
+            
+            ### ✅ Prerequisites
+            
+            Before running the application, ensure you have:
+            - Docker Desktop (includes Kubernetes) or Minikube
+            - kubectl command-line tool
+            - 4GB RAM minimum, 8GB recommended
+            - 10GB free disk space
+            
+            ### 📚 Documentation
+            
+            See the [README](https://github.com/${{ github.repository }}) for full documentation.
+            
+            ---
+            
+            **Full Changelog:** https://github.com/${{ github.repository }}/compare/v0.9.0...${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,7 @@
+{
+  "id": "hello-service",
+  "name": "Hello Service",
+  "language": "nodejs",
+  "sourceFile": "app.js",
+  "description": "A simple HTTP server that returns Hello World"
+}

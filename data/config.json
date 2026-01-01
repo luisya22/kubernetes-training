@@ -1,0 +1,6 @@
+{
+  "validationTimeout": 30000,
+  "debugMode": false,
+  "theme": "light",
+  "dockerHost": "unix:///var/run/docker.sock"
+}

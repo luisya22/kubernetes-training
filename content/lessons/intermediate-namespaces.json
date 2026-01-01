@@ -1,0 +1,64 @@
+{
+  "id": "intermediate-namespaces",
+  "title": "Namespaces and Resource Organization",
+  "level": "intermediate",
+  "order": 3,
+  "concepts": ["namespaces", "resource-organization", "multi-tenancy", "isolation"],
+  "content": {
+    "introduction": "Namespaces provide a mechanism for isolating groups of resources within a single cluster. They are ideal for organizing resources by team, project, or environment (dev, staging, production).",
+    "sections": [
+      {
+        "title": "Understanding Namespaces",
+        "content": "Namespaces provide scope for resource names and enable resource quotas and access control. Most Kubernetes resources are namespaced, but some (like nodes and persistent volumes) are cluster-wide.",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# List all namespaces\nkubectl get namespaces\n\n# Create a namespace\nkubectl create namespace development\n\n# View resources in a namespace\nkubectl get pods -n development",
+            "explanation": "Basic commands for working with namespaces."
+          },
+          {
+            "language": "yaml",
+            "code": "apiVersion: v1\nkind: Namespace\nmetadata:\n  name: development\n  labels:\n    environment: dev\n    team: backend",
+            "explanation": "Creating a namespace with labels for organization."
+          }
+        ]
+      },
+      {
+        "title": "Deploying Resources to Namespaces",
+        "content": "Resources are deployed to namespaces by specifying the namespace in metadata or using the -n flag with kubectl.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: backend-api\n  namespace: development\nspec:\n  replicas: 2\n  selector:\n    matchLabels:\n      app: backend\n  template:\n    metadata:\n      labels:\n        app: backend\n    spec:\n      containers:\n      - name: api\n        image: backend-api:v1.0",
+            "explanation": "This Deployment is created in the 'development' namespace."
+          }
+        ]
+      },
+      {
+        "title": "Resource Quotas",
+        "content": "ResourceQuotas limit the total resource consumption in a namespace, preventing any single namespace from monopolizing cluster resources.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: v1\nkind: ResourceQuota\nmetadata:\n  name: dev-quota\n  namespace: development\nspec:\n  hard:\n    requests.cpu: \"10\"\n    requests.memory: 20Gi\n    persistentvolumeclaims: \"5\"\n    pods: \"20\"",
+            "explanation": "This quota limits the development namespace to 10 CPUs, 20GB memory, 5 PVCs, and 20 Pods."
+          }
+        ]
+      },
+      {
+        "title": "Cross-Namespace Communication",
+        "content": "Services can be accessed across namespaces using fully qualified DNS names.",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# Access service in same namespace\ncurl http://backend-service:8080\n\n# Access service in different namespace\ncurl http://backend-service.development.svc.cluster.local:8080",
+            "explanation": "The full DNS name format is: <service-name>.<namespace>.svc.cluster.local"
+          }
+        ]
+      }
+    ],
+    "summary": "Namespaces provide logical isolation and organization for resources in Kubernetes. Use them to separate environments, teams, or projects within a single cluster."
+  },
+  "exercises": ["exercise-namespaces"],
+  "prerequisites": ["intermediate-volumes"]
+}

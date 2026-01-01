@@ -1,0 +1,81 @@
+{
+  "id": "beginner-kubectl-basics",
+  "title": "kubectl Command Line Basics",
+  "level": "beginner",
+  "order": 0,
+  "concepts": ["kubectl", "cli", "commands", "debugging"],
+  "content": {
+    "introduction": "kubectl is the command-line tool for interacting with Kubernetes clusters. Mastering kubectl is essential for managing and troubleshooting your applications.\n\n📄 **Download the complete kubectl Cheat Sheet** - A comprehensive reference guide with all essential commands is available in the resources section below.",
+    "sections": [
+      {
+        "title": "Essential kubectl Commands",
+        "content": "Learn the most commonly used kubectl commands for managing resources.",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# Get resources\nkubectl get pods\nkubectl get deployments\nkubectl get services\n\n# Describe resources (detailed info)\nkubectl describe pod my-pod\n\n# Create resources from YAML\nkubectl apply -f deployment.yaml\n\n# Delete resources\nkubectl delete pod my-pod",
+            "explanation": "These commands cover the basic CRUD operations for Kubernetes resources."
+          }
+        ]
+      },
+      {
+        "title": "Viewing Logs and Debugging",
+        "content": "kubectl provides powerful commands for troubleshooting applications.",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# View Pod logs\nkubectl logs my-pod\n\n# Follow logs in real-time\nkubectl logs -f my-pod\n\n# Execute commands in a Pod\nkubectl exec -it my-pod -- /bin/bash\n\n# Port forwarding for local access\nkubectl port-forward pod/my-pod 8080:80",
+            "explanation": "These commands help you debug and interact with running Pods."
+          }
+        ]
+      },
+      {
+        "title": "Working with Contexts and Namespaces",
+        "content": "Manage multiple clusters and organize resources with contexts and namespaces.",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# View current context\nkubectl config current-context\n\n# Switch context\nkubectl config use-context my-cluster\n\n# Work with namespaces\nkubectl get pods -n my-namespace\nkubectl create namespace dev",
+            "explanation": "Contexts allow you to switch between clusters, while namespaces organize resources within a cluster."
+          }
+        ]
+      },
+      {
+        "title": "Resource Management",
+        "content": "Monitor and manage resource usage in your cluster.",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# View resource usage\nkubectl top nodes\nkubectl top pods\n\n# Edit resources\nkubectl edit deployment my-deployment\n\n# View events\nkubectl get events --sort-by=.metadata.creationTimestamp",
+            "explanation": "These commands help you monitor cluster health and resource consumption."
+          }
+        ]
+      },
+      {
+        "title": "Quick Reference - Most Used Commands",
+        "content": "Here's a quick reference of the commands you'll use most often. For a complete cheat sheet, see the downloadable resource below.",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# Cluster & Context\nkubectl cluster-info\nkubectl config current-context\nkubectl config use-context <context>\n\n# Get Resources\nkubectl get pods\nkubectl get pods -A                    # All namespaces\nkubectl get pods -o wide               # More details\n\n# Describe & Logs\nkubectl describe pod <name>\nkubectl logs <pod>\nkubectl logs -f <pod>                  # Follow logs\n\n# Create & Delete\nkubectl apply -f <file.yaml>\nkubectl delete pod <name>\n\n# Execute & Debug\nkubectl exec -it <pod> -- /bin/bash\nkubectl port-forward <pod> 8080:80\n\n# Scale & Update\nkubectl scale deployment <name> --replicas=3\nkubectl set image deployment/<name> <container>=<image>",
+            "explanation": "These are the essential commands you'll use daily. Bookmark this section for quick reference!"
+          }
+        ]
+      },
+      {
+        "title": "Pro Tips",
+        "content": "Make your kubectl experience more efficient with these tips.",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# Enable tab completion (add to ~/.bashrc or ~/.zshrc)\nsource <(kubectl completion bash)      # For bash\nsource <(kubectl completion zsh)       # For zsh\n\n# Useful aliases (add to ~/.bashrc or ~/.zshrc)\nalias k='kubectl'\nalias kgp='kubectl get pods'\nalias kgs='kubectl get services'\nalias kgd='kubectl get deployments'\nalias kl='kubectl logs'\nalias kex='kubectl exec -it'\n\n# Watch resources in real-time\nkubectl get pods --watch\n\n# Get help for any command\nkubectl <command> --help\n\n# Explain resource fields\nkubectl explain pods\nkubectl explain pods.spec.containers",
+            "explanation": "These tips will save you time and make working with kubectl much more pleasant."
+          }
+        ]
+      }
+    ],
+    "summary": "kubectl is your primary tool for interacting with Kubernetes. Practice these commands to become proficient in managing your cluster.\n\n💡 **Next Steps**: Download the complete kubectl cheat sheet (see resources below) and keep it handy as you work through the exercises. The more you practice, the more natural these commands will become!"
+  },
+  "exercises": ["exercise-kubectl-basics"],
+  "prerequisites": []
+}

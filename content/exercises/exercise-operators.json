@@ -1,0 +1,76 @@
+{
+  "id": "exercise-operators",
+  "lessonId": "advanced-operators",
+  "title": "Understand Kubernetes Operators",
+  "description": "Learn about operators and deploy a simple operator-managed application",
+  "difficulty": "advanced",
+  "estimatedTime": 40,
+  "steps": [
+    {
+      "id": "step-1",
+      "order": 1,
+      "instruction": "Create a namespace 'operator-test' for operator experiments",
+      "expectedOutcome": "Namespace should be created",
+      "hints": [
+        "Use kubectl create namespace operator-test"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get namespace operator-test -o jsonpath='{.metadata.name}'",
+            "expectedOutput": "operator-test"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-2",
+      "order": 2,
+      "instruction": "Deploy a Deployment named 'operator-example' in the operator-test namespace that simulates an operator pattern by watching for changes",
+      "expectedOutcome": "Deployment should be running",
+      "hints": [
+        "Operators typically run as deployments",
+        "They watch for custom resources and reconcile state",
+        "For this exercise, just create a basic deployment"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get deployment operator-example -n operator-test -o jsonpath='{.status.availableReplicas}'",
+            "expectedOutput": "1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-3",
+      "order": 3,
+      "instruction": "Clean up by deleting the operator and its resources.",
+      "expectedOutcome": "Operator resources should be deleted",
+      "hints": [
+        "Delete custom resources first",
+        "Delete the operator deployment",
+        "Delete CRDs last",
+        "Verify: kubectl get all,crds"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get deployment sample-operator 2>&1 | grep -q \"NotFound\" && echo \"deleted\" || echo \"exists\"",
+            "expectedOutput": "deleted"
+          }
+        ]
+      }
+    }
+  ],
+  "resources": [
+    {
+      "type": "yaml",
+      "name": "operator-deployment.yaml",
+      "content": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: operator-example\n  namespace: operator-test\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: operator\n  template:\n    metadata:\n      labels:\n        app: operator\n    spec:\n      containers:\n      - name: operator\n        image: nginx:latest"
+    }
+  ]
+}

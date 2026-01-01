@@ -1,0 +1,435 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Theme Variables */
+:root[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --bg-tertiary: #fafafa;
+  --text-primary: #333333;
+  --text-secondary: #555555;
+  --text-tertiary: #666666;
+  --border-color: #e0e0e0;
+  --border-color-light: #ddd;
+  --accent-color: #326ce5;
+  --accent-hover: #2557c7;
+  --success-color: #4caf50;
+  --warning-color: #ff9800;
+  --error-color: #f44336;
+  --code-bg: #1e1e1e;
+  --code-text: #ffffff;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+:root[data-theme="dark"] {
+  --bg-primary: #1e1e1e;
+  --bg-secondary: #2d2d2d;
+  --bg-tertiary: #252525;
+  --text-primary: #e0e0e0;
+  --text-secondary: #b0b0b0;
+  --text-tertiary: #909090;
+  --border-color: #404040;
+  --border-color-light: #505050;
+  --accent-color: #4a90e2;
+  --accent-hover: #357abd;
+  --success-color: #66bb6a;
+  --warning-color: #ffa726;
+  --error-color: #ef5350;
+  --code-bg: #0d0d0d;
+  --code-text: #e0e0e0;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.app {
+  padding: 20px;
+}
+
+h1 {
+  color: var(--accent-color);
+  margin-bottom: 20px;
+}
+
+/* Lesson Viewer Styles */
+.lesson-viewer {
+  display: flex;
+  height: 100vh;
+  background-color: var(--bg-primary);
+}
+
+.lesson-sidebar {
+  width: 300px;
+  border-right: 1px solid var(--border-color);
+  padding: 20px;
+  overflow-y: auto;
+  background-color: var(--bg-tertiary);
+}
+
+.lesson-sidebar h2 {
+  color: var(--accent-color);
+  margin-bottom: 20px;
+  font-size: 24px;
+}
+
+.difficulty-filter {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.difficulty-filter button {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color-light);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.difficulty-filter button:hover {
+  background-color: var(--bg-secondary);
+}
+
+.difficulty-filter button.active {
+  background-color: var(--accent-color);
+  color: white;
+  border-color: var(--accent-color);
+}
+
+.lesson-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lesson-item {
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-color: var(--bg-primary);
+}
+
+.lesson-item:hover {
+  border-color: var(--accent-color);
+  box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.lesson-item.selected {
+  border-color: var(--accent-color);
+  background-color: var(--bg-secondary);
+}
+
+.lesson-item h3 {
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.lesson-concepts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.concept-tag {
+  font-size: 11px;
+  padding: 3px 8px;
+  background-color: var(--accent-color);
+  color: white;
+  border-radius: 12px;
+  opacity: 0.8;
+}
+
+.no-lessons {
+  color: var(--text-tertiary);
+  font-style: italic;
+  text-align: center;
+  padding: 20px;
+}
+
+.lesson-content {
+  flex: 1;
+  padding: 40px;
+  overflow-y: auto;
+}
+
+.no-selection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-tertiary);
+}
+
+.no-selection h2 {
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 18px;
+  color: var(--text-secondary);
+}
+
+.lesson-detail {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.lesson-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.lesson-header h1 {
+  flex: 1;
+  font-size: 32px;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.level-badge {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.level-badge.beginner {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.level-badge.intermediate {
+  background-color: var(--warning-color);
+  color: white;
+}
+
+.level-badge.advanced {
+  background-color: var(--error-color);
+  color: white;
+}
+
+.lesson-concepts-section {
+  margin-bottom: 30px;
+}
+
+.lesson-concepts-section h3 {
+  font-size: 18px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.concepts-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.concept-badge {
+  padding: 8px 16px;
+  background-color: var(--accent-color);
+  color: white;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.lesson-introduction {
+  margin-bottom: 30px;
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.lesson-section {
+  margin-bottom: 40px;
+}
+
+.lesson-section h2 {
+  font-size: 24px;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.section-content p {
+  margin-bottom: 12px;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  font-size: 16px;
+}
+
+.code-examples {
+  margin-top: 20px;
+}
+
+.code-example {
+  margin-bottom: 24px;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.code-header {
+  background-color: var(--code-bg);
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+}
+
+.code-language {
+  color: var(--code-text);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.code-explanation {
+  padding: 12px 16px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  font-size: 14px;
+  color: var(--text-tertiary);
+  line-height: 1.5;
+}
+
+.diagrams {
+  margin-top: 20px;
+}
+
+.diagram {
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 16px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+}
+
+.diagram pre {
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.lesson-summary {
+  margin-top: 40px;
+  padding: 20px;
+  background-color: var(--bg-secondary);
+  border-left: 4px solid var(--accent-color);
+  border-radius: 4px;
+}
+
+.lesson-summary h2 {
+  font-size: 20px;
+  color: var(--accent-color);
+  margin-bottom: 12px;
+}
+
+.lesson-summary p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.related-exercises {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: var(--bg-secondary);
+  border-radius: 4px;
+}
+
+.related-exercises h3 {
+  font-size: 18px;
+  color: var(--warning-color);
+  margin-bottom: 12px;
+}
+
+.related-exercises ul {
+  list-style: none;
+  padding: 0;
+}
+
+.related-exercises li {
+  padding: 8px 0;
+  color: var(--text-tertiary);
+  font-size: 14px;
+}
+
+.related-exercises li:before {
+  content: "→ ";
+  color: var(--warning-color);
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+.lesson-actions {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-complete {
+  padding: 12px 32px;
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-complete:hover {
+  background-color: var(--accent-hover);
+  box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.btn-complete:active {
+  transform: translateY(1px);
+}
+
+/* Loading Indicator Animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}

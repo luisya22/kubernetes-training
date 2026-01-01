@@ -1,0 +1,102 @@
+{
+  "id": "advanced-crds",
+  "title": "Custom Resource Definitions (CRDs)",
+  "level": "advanced",
+  "order": 6,
+  "concepts": ["crds", "custom-resources", "api-extensions", "controllers"],
+  "content": {
+    "introduction": "Custom Resource Definitions (CRDs) extend the Kubernetes API with your own resource types. They enable you to create domain-specific abstractions and build operators that manage complex applications using Kubernetes-native patterns.",
+    "sections": [
+      {
+        "title": "Understanding CRDs",
+        "content": "CRDs allow you to define new resource types that behave like built-in Kubernetes resources. Once a CRD is created, you can use kubectl to create, read, update, and delete instances of your custom resource.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: apiextensions.k8s.io/v1\nkind: CustomResourceDefinition\nmetadata:\n  name: databases.example.com\nspec:\n  group: example.com\n  versions:\n  - name: v1\n    served: true\n    storage: true\n    schema:\n      openAPIV3Schema:\n        type: object\n        properties:\n          spec:\n            type: object\n            properties:\n              engine:\n                type: string\n                enum: [\"postgres\", \"mysql\", \"mongodb\"]\n              version:\n                type: string\n              storage:\n                type: string\n            required:\n            - engine\n            - version\n  scope: Namespaced\n  names:\n    plural: databases\n    singular: database\n    kind: Database\n    shortNames:\n    - db",
+            "explanation": "This CRD defines a 'Database' resource type with fields for engine, version, and storage. It validates that engine is one of the allowed values."
+          }
+        ]
+      },
+      {
+        "title": "Creating Custom Resources",
+        "content": "Once a CRD is installed, you can create instances of your custom resource using standard Kubernetes manifests.",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# Install the CRD\nkubectl apply -f database-crd.yaml\n\n# Verify CRD is installed\nkubectl get crds\nkubectl describe crd databases.example.com",
+            "explanation": "Install the CRD before creating any custom resources."
+          },
+          {
+            "language": "yaml",
+            "code": "apiVersion: example.com/v1\nkind: Database\nmetadata:\n  name: my-postgres-db\n  namespace: production\nspec:\n  engine: postgres\n  version: \"14.5\"\n  storage: \"100Gi\"",
+            "explanation": "This creates an instance of the Database custom resource. It's stored in etcd like any other Kubernetes resource."
+          },
+          {
+            "language": "bash",
+            "code": "# Create the custom resource\nkubectl apply -f my-database.yaml\n\n# List custom resources\nkubectl get databases\nkubectl get db  # using short name\n\n# Describe custom resource\nkubectl describe database my-postgres-db",
+            "explanation": "Use kubectl with custom resources just like built-in resources."
+          }
+        ]
+      },
+      {
+        "title": "CRD Validation",
+        "content": "CRDs support OpenAPI v3 schema validation to ensure custom resources meet your requirements.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "schema:\n  openAPIV3Schema:\n    type: object\n    properties:\n      spec:\n        type: object\n        properties:\n          replicas:\n            type: integer\n            minimum: 1\n            maximum: 10\n          resources:\n            type: object\n            properties:\n              cpu:\n                type: string\n                pattern: '^[0-9]+m?$'\n              memory:\n                type: string\n                pattern: '^[0-9]+[MGT]i$'\n        required:\n        - replicas",
+            "explanation": "This schema validates that replicas is between 1-10, cpu matches a pattern, and replicas is required."
+          }
+        ]
+      },
+      {
+        "title": "Subresources",
+        "content": "CRDs can define subresources like status and scale, enabling standard Kubernetes patterns.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: apiextensions.k8s.io/v1\nkind: CustomResourceDefinition\nmetadata:\n  name: applications.example.com\nspec:\n  group: example.com\n  versions:\n  - name: v1\n    served: true\n    storage: true\n    schema:\n      openAPIV3Schema:\n        type: object\n        properties:\n          spec:\n            type: object\n            properties:\n              replicas:\n                type: integer\n          status:\n            type: object\n            properties:\n              availableReplicas:\n                type: integer\n              conditions:\n                type: array\n                items:\n                  type: object\n    subresources:\n      status: {}\n      scale:\n        specReplicasPath: .spec.replicas\n        statusReplicasPath: .status.availableReplicas\n  scope: Namespaced\n  names:\n    plural: applications\n    singular: application\n    kind: Application",
+            "explanation": "This CRD defines status and scale subresources, allowing kubectl scale and separate status updates."
+          }
+        ]
+      },
+      {
+        "title": "Multiple Versions",
+        "content": "CRDs support multiple versions with conversion between them, enabling API evolution.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: apiextensions.k8s.io/v1\nkind: CustomResourceDefinition\nmetadata:\n  name: widgets.example.com\nspec:\n  group: example.com\n  versions:\n  - name: v1\n    served: true\n    storage: true\n    schema:\n      openAPIV3Schema:\n        type: object\n        properties:\n          spec:\n            type: object\n            properties:\n              size:\n                type: string\n  - name: v1beta1\n    served: true\n    storage: false\n    schema:\n      openAPIV3Schema:\n        type: object\n        properties:\n          spec:\n            type: object\n            properties:\n              dimensions:\n                type: string\n  conversion:\n    strategy: Webhook\n    webhook:\n      clientConfig:\n        service:\n          name: widget-converter\n          namespace: default\n          path: /convert\n      conversionReviewVersions: [\"v1\", \"v1beta1\"]",
+            "explanation": "This CRD supports v1 and v1beta1 versions with webhook-based conversion between them."
+          }
+        ]
+      },
+      {
+        "title": "Controllers and Operators",
+        "content": "CRDs are most powerful when paired with controllers (operators) that watch for custom resources and take action to reconcile desired state.",
+        "codeExamples": [
+          {
+            "language": "go",
+            "code": "// Simplified controller pseudocode\nfunc (c *DatabaseController) Reconcile(ctx context.Context, req Request) (Result, error) {\n    // Get the Database custom resource\n    db := &Database{}\n    if err := c.Get(ctx, req.NamespacedName, db); err != nil {\n        return Result{}, err\n    }\n    \n    // Reconcile: create/update actual database resources\n    if db.Spec.Engine == \"postgres\" {\n        // Create StatefulSet, Service, PVC for PostgreSQL\n        c.createPostgresResources(ctx, db)\n    }\n    \n    // Update status\n    db.Status.Ready = true\n    c.Status().Update(ctx, db)\n    \n    return Result{}, nil\n}",
+            "explanation": "A controller watches Database resources and creates the necessary Kubernetes resources (StatefulSet, Service, etc.) to run the actual database."
+          }
+        ]
+      },
+      {
+        "title": "CRD Best Practices",
+        "content": "Use meaningful names and groups. Define comprehensive validation schemas. Use status subresources for operational state. Version your APIs properly. Document your CRDs thoroughly.",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# View CRD details\nkubectl explain database\nkubectl explain database.spec\n\n# View all CRDs in cluster\nkubectl get crds\n\n# Delete a CRD (also deletes all custom resources)\nkubectl delete crd databases.example.com\n\n# Export custom resource\nkubectl get database my-postgres-db -o yaml",
+            "explanation": "Use kubectl explain to view CRD documentation. Be careful when deleting CRDs as it removes all instances."
+          }
+        ]
+      }
+    ],
+    "summary": "CRDs extend Kubernetes with custom resource types, enabling domain-specific abstractions. Combined with controllers, they form the foundation of Kubernetes operators that automate complex application management."
+  },
+  "exercises": ["exercise-crds"],
+  "prerequisites": ["advanced-operators"]
+}

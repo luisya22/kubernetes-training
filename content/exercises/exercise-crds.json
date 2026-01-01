@@ -1,0 +1,82 @@
+{
+  "id": "exercise-crds",
+  "lessonId": "advanced-crds",
+  "title": "Create Custom Resource Definitions",
+  "description": "Define and use Custom Resource Definitions to extend Kubernetes",
+  "difficulty": "advanced",
+  "estimatedTime": 35,
+  "steps": [
+    {
+      "id": "step-1",
+      "order": 1,
+      "instruction": "Create a CustomResourceDefinition named 'applications.example.com' with group 'example.com', version 'v1', and kind 'Application'",
+      "expectedOutcome": "CRD should be registered in the cluster",
+      "hints": [
+        "CRDs extend the Kubernetes API with new resource types",
+        "Specify the group, versions, and names in the spec",
+        "Set scope to 'Namespaced' for namespace-scoped resources"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get crd applications.example.com -o jsonpath='{.spec.group}'",
+            "expectedOutput": "example.com"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-2",
+      "order": 2,
+      "instruction": "Create an instance of the Application custom resource named 'my-app' with a spec field containing 'replicas: 3'",
+      "expectedOutcome": "Custom resource instance should be created",
+      "hints": [
+        "Once the CRD is created, you can create instances of it",
+        "Use the apiVersion: example.com/v1 and kind: Application",
+        "Add any spec fields you defined in the CRD"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get application my-app -o jsonpath='{.kind}'",
+            "expectedOutput": "Application"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-3",
+      "order": 3,
+      "instruction": "Clean up by deleting the custom resource and CRD.",
+      "expectedOutcome": "Custom resource and CRD should be deleted",
+      "hints": [
+        "Delete custom resources first: kubectl delete crontab my-cron",
+        "Delete the CRD: kubectl delete crd crontabs.stable.example.com",
+        "Verify: kubectl get crds"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get crd crontabs.stable.example.com 2>&1 | grep -q \"NotFound\" && echo \"deleted\" || echo \"exists\"",
+            "expectedOutput": "deleted"
+          }
+        ]
+      }
+    }
+  ],
+  "resources": [
+    {
+      "type": "yaml",
+      "name": "crd.yaml",
+      "content": "apiVersion: apiextensions.k8s.io/v1\nkind: CustomResourceDefinition\nmetadata:\n  name: applications.example.com\nspec:\n  group: example.com\n  versions:\n  - name: v1\n    served: true\n    storage: true\n    schema:\n      openAPIV3Schema:\n        type: object\n        properties:\n          spec:\n            type: object\n            properties:\n              replicas:\n                type: integer\n  scope: Namespaced\n  names:\n    plural: applications\n    singular: application\n    kind: Application\n    shortNames:\n    - app"
+    },
+    {
+      "type": "yaml",
+      "name": "application-instance.yaml",
+      "content": "apiVersion: example.com/v1\nkind: Application\nmetadata:\n  name: my-app\nspec:\n  replicas: 3"
+    }
+  ]
+}

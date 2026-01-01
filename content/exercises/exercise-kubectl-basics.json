@@ -1,0 +1,68 @@
+{
+  "id": "exercise-kubectl-basics",
+  "lessonId": "beginner-kubectl-basics",
+  "title": "Master kubectl Commands",
+  "description": "Practice essential kubectl commands for managing Kubernetes resources",
+  "difficulty": "beginner",
+  "estimatedTime": 15,
+  "steps": [
+    {
+      "id": "step-1",
+      "order": 1,
+      "instruction": "Create a namespace named 'practice'",
+      "expectedOutcome": "Namespace 'practice' should exist",
+      "hints": [
+        "Use kubectl create namespace practice",
+        "Verify with kubectl get namespaces"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get namespace practice -o jsonpath='{.metadata.name}'",
+            "expectedOutput": "practice"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-2",
+      "order": 2,
+      "instruction": "Create a Pod named 'test-pod' in the 'practice' namespace running busybox:latest with the command 'sleep 3600'",
+      "expectedOutcome": "Pod should be running in the practice namespace",
+      "hints": [
+        "Use kubectl run with --namespace flag",
+        "Command: kubectl run test-pod --image=busybox --namespace=practice -- sleep 3600"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get pod test-pod -n practice -o jsonpath='{.status.phase}'",
+            "expectedOutput": "Running"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-3",
+      "order": 3,
+      "instruction": "Clean up by deleting the test pod.",
+      "expectedOutcome": "Pod should be deleted successfully",
+      "hints": [
+        "Use: kubectl delete pod test-pod",
+        "Verify deletion: kubectl get pods"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get pod test-pod 2>&1 | grep -q \"NotFound\" && echo \"deleted\" || echo \"exists\"",
+            "expectedOutput": "deleted"
+          }
+        ]
+      }
+    }
+  ],
+  "resources": []
+}

@@ -1,0 +1,57 @@
+{
+  "id": "exercise-daemonsets",
+  "lessonId": "advanced-daemonsets",
+  "title": "Deploy a DaemonSet",
+  "description": "Create a DaemonSet that runs on every node in the cluster",
+  "difficulty": "advanced",
+  "estimatedTime": 20,
+  "steps": [
+    {
+      "id": "step-1",
+      "order": 1,
+      "instruction": "Create a DaemonSet named 'node-monitor' that runs a busybox container on every node",
+      "expectedOutcome": "DaemonSet should create one pod per node in the cluster",
+      "hints": [
+        "DaemonSets automatically schedule one pod per node",
+        "Use a simple command like 'sleep 3600' for the container",
+        "Check the number of desired pods matches the number of nodes"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get daemonset node-monitor -o jsonpath='{.status.numberReady}'",
+            "expectedOutput": "1"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-2",
+      "order": 2,
+      "instruction": "Clean up by deleting the DaemonSet.",
+      "expectedOutcome": "DaemonSet should be deleted",
+      "hints": [
+        "Delete the DaemonSet: kubectl delete daemonset node-exporter",
+        "This will remove the pod from all nodes",
+        "Verify: kubectl get daemonsets"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get daemonset node-exporter 2>&1 | grep -q \"NotFound\" && echo \"deleted\" || echo \"exists\"",
+            "expectedOutput": "deleted"
+          }
+        ]
+      }
+    }
+  ],
+  "resources": [
+    {
+      "type": "yaml",
+      "name": "daemonset.yaml",
+      "content": "apiVersion: apps/v1\nkind: DaemonSet\nmetadata:\n  name: node-monitor\nspec:\n  selector:\n    matchLabels:\n      app: node-monitor\n  template:\n    metadata:\n      labels:\n        app: node-monitor\n    spec:\n      containers:\n      - name: busybox\n        image: busybox:latest\n        command: ['sh', '-c', 'sleep 3600']"
+    }
+  ]
+}

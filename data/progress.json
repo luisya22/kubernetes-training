@@ -1,0 +1,19 @@
+{
+  "completedLessons": [
+    "beginner-deployments",
+    "beginner-kubectl-basics",
+    "beginner-pods"
+  ],
+  "completedExercises": [
+    "exercise-kubectl-basics",
+    "exercise-create-pod"
+  ],
+  "currentLevel": "beginner",
+  "timestamps": {
+    "beginner-deployments": "2025-12-31T12:35:22.962Z",
+    "beginner-kubectl-basics": "2025-12-31T13:11:52.192Z",
+    "exercise-kubectl-basics": "2025-12-31T13:29:30.704Z",
+    "beginner-pods": "2025-12-31T13:37:54.520Z",
+    "exercise-create-pod": "2025-12-31T13:46:17.665Z"
+  }
+}

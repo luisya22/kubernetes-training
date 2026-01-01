@@ -1,0 +1,7 @@
+{
+  "id": "data-processor",
+  "name": "Data Processor",
+  "language": "java",
+  "sourceFile": "src/main/java/com/example/DataProcessor.java",
+  "description": "A Java service for queue processing"
+}

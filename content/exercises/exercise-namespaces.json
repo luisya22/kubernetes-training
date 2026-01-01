@@ -1,0 +1,83 @@
+{
+  "id": "exercise-namespaces",
+  "lessonId": "intermediate-namespaces",
+  "title": "Organize Resources with Namespaces",
+  "description": "Create and use namespaces for resource isolation",
+  "difficulty": "intermediate",
+  "estimatedTime": 15,
+  "steps": [
+    {
+      "id": "step-1",
+      "order": 1,
+      "instruction": "Create two namespaces: 'development' and 'production'",
+      "expectedOutcome": "Both namespaces should exist in the cluster",
+      "hints": [
+        "Use kubectl create namespace <name>",
+        "Verify with kubectl get namespaces"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get namespace development -o jsonpath='{.metadata.name}'",
+            "expectedOutput": "development"
+          },
+          {
+            "command": "kubectl get namespace production -o jsonpath='{.metadata.name}'",
+            "expectedOutput": "production"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-2",
+      "order": 2,
+      "instruction": "Deploy a Pod named 'app' in both the 'development' and 'production' namespaces",
+      "expectedOutcome": "Two separate Pods named 'app' should exist, one in each namespace",
+      "hints": [
+        "Use kubectl run app --image=nginx --namespace=development",
+        "Repeat for production namespace",
+        "Pods with the same name can exist in different namespaces"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get pod app -n development -o jsonpath='{.metadata.name}'",
+            "expectedOutput": "app"
+          },
+          {
+            "command": "kubectl get pod app -n production -o jsonpath='{.metadata.name}'",
+            "expectedOutput": "app"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-3",
+      "order": 3,
+      "instruction": "Clean up by deleting both namespaces. This will also delete all resources within them.",
+      "expectedOutcome": "Both namespaces and their resources should be deleted",
+      "hints": [
+        "Delete namespaces: kubectl delete namespace development production",
+        "Deleting a namespace automatically deletes all resources within it",
+        "Verify deletion: kubectl get namespaces",
+        "This may take a few moments as Kubernetes cleans up all resources"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get namespace development 2>&1 | grep -q \"NotFound\" && echo \"deleted\" || echo \"exists\"",
+            "expectedOutput": "deleted"
+          },
+          {
+            "command": "kubectl get namespace production 2>&1 | grep -q \"NotFound\" && echo \"deleted\" || echo \"exists\"",
+            "expectedOutput": "deleted"
+          }
+        ]
+      }
+    }
+  ],
+  "resources": []
+}

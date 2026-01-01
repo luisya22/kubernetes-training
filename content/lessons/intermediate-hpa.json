@@ -1,0 +1,70 @@
+{
+  "id": "intermediate-hpa",
+  "title": "Horizontal Pod Autoscaling",
+  "level": "intermediate",
+  "order": 6,
+  "concepts": ["autoscaling", "hpa", "metrics", "scaling-policies"],
+  "content": {
+    "introduction": "Horizontal Pod Autoscaler (HPA) automatically scales the number of Pods based on observed metrics like CPU utilization, memory usage, or custom metrics. This ensures your application can handle varying workloads efficiently.",
+    "sections": [
+      {
+        "title": "Understanding HPA",
+        "content": "HPA periodically checks metrics and adjusts the number of replicas in a Deployment, ReplicaSet, or StatefulSet. It uses the Metrics Server to collect resource metrics.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: autoscaling/v2\nkind: HorizontalPodAutoscaler\nmetadata:\n  name: app-hpa\nspec:\n  scaleTargetRef:\n    apiVersion: apps/v1\n    kind: Deployment\n    name: web-app\n  minReplicas: 2\n  maxReplicas: 10\n  metrics:\n  - type: Resource\n    resource:\n      name: cpu\n      target:\n        type: Utilization\n        averageUtilization: 70",
+            "explanation": "This HPA scales the web-app Deployment between 2 and 10 replicas, targeting 70% CPU utilization."
+          }
+        ]
+      },
+      {
+        "title": "Creating HPA with kubectl",
+        "content": "You can create an HPA using kubectl autoscale command for simple CPU-based scaling.",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# Create HPA for a Deployment\nkubectl autoscale deployment web-app --cpu-percent=70 --min=2 --max=10\n\n# View HPA status\nkubectl get hpa\n\n# Describe HPA for details\nkubectl describe hpa app-hpa",
+            "explanation": "The autoscale command creates an HPA that maintains average CPU utilization at 70%."
+          }
+        ]
+      },
+      {
+        "title": "Multiple Metrics",
+        "content": "HPA v2 supports multiple metrics including CPU, memory, and custom metrics. The autoscaler calculates desired replicas for each metric and uses the highest value.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: autoscaling/v2\nkind: HorizontalPodAutoscaler\nmetadata:\n  name: multi-metric-hpa\nspec:\n  scaleTargetRef:\n    apiVersion: apps/v1\n    kind: Deployment\n    name: api-server\n  minReplicas: 3\n  maxReplicas: 20\n  metrics:\n  - type: Resource\n    resource:\n      name: cpu\n      target:\n        type: Utilization\n        averageUtilization: 60\n  - type: Resource\n    resource:\n      name: memory\n      target:\n        type: Utilization\n        averageUtilization: 80\n  - type: Pods\n    pods:\n      metric:\n        name: http_requests_per_second\n      target:\n        type: AverageValue\n        averageValue: \"1000\"",
+            "explanation": "This HPA scales based on CPU, memory, and custom http_requests_per_second metric."
+          }
+        ]
+      },
+      {
+        "title": "Scaling Behavior",
+        "content": "Configure scaling behavior to control how quickly HPA scales up or down, preventing flapping and ensuring stability.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: autoscaling/v2\nkind: HorizontalPodAutoscaler\nmetadata:\n  name: controlled-scaling-hpa\nspec:\n  scaleTargetRef:\n    apiVersion: apps/v1\n    kind: Deployment\n    name: web-app\n  minReplicas: 2\n  maxReplicas: 15\n  metrics:\n  - type: Resource\n    resource:\n      name: cpu\n      target:\n        type: Utilization\n        averageUtilization: 70\n  behavior:\n    scaleDown:\n      stabilizationWindowSeconds: 300\n      policies:\n      - type: Percent\n        value: 50\n        periodSeconds: 60\n    scaleUp:\n      stabilizationWindowSeconds: 0\n      policies:\n      - type: Percent\n        value: 100\n        periodSeconds: 30\n      - type: Pods\n        value: 4\n        periodSeconds: 30\n      selectPolicy: Max",
+            "explanation": "This HPA scales up quickly (double replicas or add 4 pods every 30s) but scales down slowly (50% reduction every 60s with 5-minute stabilization)."
+          }
+        ]
+      },
+      {
+        "title": "Prerequisites and Monitoring",
+        "content": "HPA requires the Metrics Server to be installed. Monitor HPA behavior to tune scaling parameters.",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# Check if Metrics Server is running\nkubectl get deployment metrics-server -n kube-system\n\n# View current metrics\nkubectl top pods\n\n# Watch HPA in action\nkubectl get hpa --watch\n\n# View HPA events\nkubectl describe hpa app-hpa",
+            "explanation": "Use these commands to verify Metrics Server is running and monitor HPA scaling decisions."
+          }
+        ]
+      }
+    ],
+    "summary": "Horizontal Pod Autoscaler enables automatic scaling based on resource utilization or custom metrics. Configure appropriate min/max replicas and scaling policies to handle your workload efficiently."
+  },
+  "exercises": ["exercise-hpa"],
+  "prerequisites": ["intermediate-health-checks"]
+}

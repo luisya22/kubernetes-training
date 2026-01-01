@@ -1,0 +1,75 @@
+{
+  "id": "advanced-daemonsets",
+  "title": "DaemonSets for Node-Level Services",
+  "level": "advanced",
+  "order": 2,
+  "concepts": ["daemonsets", "node-agents", "system-services", "node-selectors"],
+  "content": {
+    "introduction": "DaemonSets ensure that a copy of a Pod runs on all (or selected) nodes in the cluster. They are ideal for cluster-wide services like log collectors, monitoring agents, and network plugins.",
+    "sections": [
+      {
+        "title": "Understanding DaemonSets",
+        "content": "A DaemonSet automatically schedules one Pod per node. When new nodes are added to the cluster, Pods are automatically added to them. When nodes are removed, those Pods are garbage collected.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: apps/v1\nkind: DaemonSet\nmetadata:\n  name: fluentd-logging\n  namespace: kube-system\nspec:\n  selector:\n    matchLabels:\n      app: fluentd\n  template:\n    metadata:\n      labels:\n        app: fluentd\n    spec:\n      containers:\n      - name: fluentd\n        image: fluent/fluentd:v1.14\n        volumeMounts:\n        - name: varlog\n          mountPath: /var/log\n        - name: varlibdockercontainers\n          mountPath: /var/lib/docker/containers\n          readOnly: true\n      volumes:\n      - name: varlog\n        hostPath:\n          path: /var/log\n      - name: varlibdockercontainers\n        hostPath:\n          path: /var/lib/docker/containers",
+            "explanation": "This DaemonSet runs a Fluentd log collector on every node, mounting host directories to collect logs."
+          }
+        ]
+      },
+      {
+        "title": "Node Selection",
+        "content": "Use nodeSelector, node affinity, or taints and tolerations to run DaemonSet Pods on specific nodes only.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: apps/v1\nkind: DaemonSet\nmetadata:\n  name: nvidia-gpu-plugin\nspec:\n  selector:\n    matchLabels:\n      app: nvidia-plugin\n  template:\n    metadata:\n      labels:\n        app: nvidia-plugin\n    spec:\n      nodeSelector:\n        accelerator: nvidia-gpu\n      containers:\n      - name: nvidia-plugin\n        image: nvidia/k8s-device-plugin:v0.12.0",
+            "explanation": "This DaemonSet only runs on nodes with the label 'accelerator: nvidia-gpu'."
+          },
+          {
+            "language": "yaml",
+            "code": "apiVersion: apps/v1\nkind: DaemonSet\nmetadata:\n  name: monitoring-agent\nspec:\n  selector:\n    matchLabels:\n      app: monitoring\n  template:\n    metadata:\n      labels:\n        app: monitoring\n    spec:\n      tolerations:\n      - key: node-role.kubernetes.io/master\n        effect: NoSchedule\n      containers:\n      - name: agent\n        image: monitoring-agent:v1.0",
+            "explanation": "This DaemonSet tolerates the master node taint, allowing it to run on control plane nodes."
+          }
+        ]
+      },
+      {
+        "title": "Common Use Cases",
+        "content": "DaemonSets are commonly used for: log collection (Fluentd, Logstash), monitoring (Prometheus Node Exporter, Datadog agent), network plugins (Calico, Weave), and storage plugins (Ceph, GlusterFS).",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: apps/v1\nkind: DaemonSet\nmetadata:\n  name: node-exporter\n  namespace: monitoring\nspec:\n  selector:\n    matchLabels:\n      app: node-exporter\n  template:\n    metadata:\n      labels:\n        app: node-exporter\n    spec:\n      hostNetwork: true\n      hostPID: true\n      containers:\n      - name: node-exporter\n        image: prom/node-exporter:v1.3.1\n        args:\n        - --path.procfs=/host/proc\n        - --path.sysfs=/host/sys\n        ports:\n        - containerPort: 9100\n          hostPort: 9100\n        volumeMounts:\n        - name: proc\n          mountPath: /host/proc\n          readOnly: true\n        - name: sys\n          mountPath: /host/sys\n          readOnly: true\n      volumes:\n      - name: proc\n        hostPath:\n          path: /proc\n      - name: sys\n        hostPath:\n          path: /sys",
+            "explanation": "This DaemonSet runs Prometheus Node Exporter on every node to collect system metrics."
+          }
+        ]
+      },
+      {
+        "title": "Update Strategies",
+        "content": "DaemonSets support RollingUpdate and OnDelete update strategies. RollingUpdate automatically updates Pods when the DaemonSet is modified.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: apps/v1\nkind: DaemonSet\nmetadata:\n  name: fluentd-logging\nspec:\n  updateStrategy:\n    type: RollingUpdate\n    rollingUpdate:\n      maxUnavailable: 1\n  selector:\n    matchLabels:\n      app: fluentd\n  template:\n    # ... pod template",
+            "explanation": "This update strategy ensures only 1 Pod is unavailable at a time during updates, maintaining log collection coverage."
+          }
+        ]
+      },
+      {
+        "title": "Managing DaemonSets",
+        "content": "Monitor and manage DaemonSets to ensure they're running on all expected nodes.",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# View DaemonSet status\nkubectl get daemonset -n kube-system\n\n# Check which nodes have DaemonSet Pods\nkubectl get pods -l app=fluentd -o wide\n\n# Describe DaemonSet for details\nkubectl describe daemonset fluentd-logging\n\n# View DaemonSet rollout status\nkubectl rollout status daemonset/fluentd-logging",
+            "explanation": "These commands help you verify DaemonSet Pods are running on all expected nodes."
+          }
+        ]
+      }
+    ],
+    "summary": "DaemonSets ensure critical node-level services run on every node in your cluster. Use them for logging, monitoring, networking, and storage plugins that need to run cluster-wide."
+  },
+  "exercises": ["exercise-daemonsets"],
+  "prerequisites": ["advanced-statefulsets"]
+}

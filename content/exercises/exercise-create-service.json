@@ -1,0 +1,86 @@
+{
+  "id": "exercise-create-service",
+  "lessonId": "beginner-services",
+  "title": "Expose an Application with a Service",
+  "description": "Create a Service to expose your Deployment and test connectivity",
+  "difficulty": "beginner",
+  "estimatedTime": 15,
+  "steps": [
+    {
+      "id": "step-1",
+      "order": 1,
+      "instruction": "Create a Deployment named 'echo-server' running hashicorp/http-echo with the argument '-text=hello'",
+      "expectedOutcome": "Deployment should be running with 2 replicas",
+      "hints": [
+        "Use kubectl create deployment or apply a YAML manifest",
+        "Set replicas to 2",
+        "The container should listen on port 5678"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get deployment echo-server -o jsonpath='{.status.availableReplicas}'",
+            "expectedOutput": "2"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-2",
+      "order": 2,
+      "instruction": "Create a ClusterIP Service named 'echo-service' that exposes the echo-server deployment on port 80, targeting port 5678",
+      "expectedOutcome": "Service should be created and accessible within the cluster",
+      "hints": [
+        "Use kubectl expose or create a Service YAML",
+        "The service should select pods with the correct labels",
+        "Service port should be 80, targetPort should be 5678"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get service echo-service -o jsonpath='{.spec.type}'",
+            "expectedOutput": "ClusterIP"
+          },
+          {
+            "command": "kubectl get service echo-service -o jsonpath='{.spec.ports[0].port}'",
+            "expectedOutput": "80"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-3",
+      "order": 3,
+      "instruction": "Clean up by deleting the service and deployment to free up cluster resources.",
+      "expectedOutcome": "Service and deployment should be deleted successfully",
+      "hints": [
+        "Delete the service: kubectl delete service echo-service",
+        "Delete the deployment: kubectl delete deployment echo-server",
+        "Verify deletion: kubectl get services,deployments",
+        "Always clean up resources after exercises to keep your cluster tidy"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get service echo-service 2>&1 | grep -q \"NotFound\" && echo \"deleted\" || echo \"exists\"",
+            "expectedOutput": "deleted"
+          },
+          {
+            "command": "kubectl get deployment echo-server 2>&1 | grep -q \"NotFound\" && echo \"deleted\" || echo \"exists\"",
+            "expectedOutput": "deleted"
+          }
+        ]
+      }
+    }
+  ],
+  "resources": [
+    {
+      "type": "yaml",
+      "name": "service-template.yaml",
+      "content": "apiVersion: v1\nkind: Service\nmetadata:\n  name: echo-service\nspec:\n  selector:\n    app: echo-server\n  ports:\n  - protocol: TCP\n    port: 80\n    targetPort: 5678\n  type: ClusterIP"
+    }
+  ]
+}

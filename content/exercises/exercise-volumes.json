@@ -1,0 +1,86 @@
+{
+  "id": "exercise-volumes",
+  "lessonId": "intermediate-volumes",
+  "title": "Work with Persistent Volumes",
+  "description": "Create PersistentVolumeClaims and mount them to Pods",
+  "difficulty": "intermediate",
+  "estimatedTime": 25,
+  "steps": [
+    {
+      "id": "step-1",
+      "order": 1,
+      "instruction": "Create a PersistentVolumeClaim named 'data-pvc' requesting 1Gi of storage",
+      "expectedOutcome": "PVC should be created and bound to a PersistentVolume",
+      "hints": [
+        "Use accessModes: ReadWriteOnce",
+        "Most local clusters will automatically provision a volume",
+        "Check status with kubectl get pvc"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get pvc data-pvc -o jsonpath='{.status.phase}'",
+            "expectedOutput": "Bound"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-2",
+      "order": 2,
+      "instruction": "Create a Pod named 'volume-test' that mounts the PVC at /data",
+      "expectedOutcome": "Pod should be running with the volume mounted",
+      "hints": [
+        "Add a volume referencing the PVC in the Pod spec",
+        "Add a volumeMount in the container spec",
+        "Use a simple image like busybox"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get pod volume-test -o jsonpath='{.spec.volumes[0].persistentVolumeClaim.claimName}'",
+            "expectedOutput": "data-pvc"
+          },
+          {
+            "command": "kubectl get pod volume-test -o jsonpath='{.status.phase}'",
+            "expectedOutput": "Running"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-3",
+      "order": 3,
+      "instruction": "Clean up by deleting the pod and PersistentVolumeClaim.",
+      "expectedOutcome": "Pod and PVC should be deleted",
+      "hints": [
+        "Delete the pod first: kubectl delete pod data-pod",
+        "Delete the PVC: kubectl delete pvc data-pvc",
+        "Verify: kubectl get pods,pvc"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get pvc data-pvc 2>&1 | grep -q \"NotFound\" && echo \"deleted\" || echo \"exists\"",
+            "expectedOutput": "deleted"
+          }
+        ]
+      }
+    }
+  ],
+  "resources": [
+    {
+      "type": "yaml",
+      "name": "pvc.yaml",
+      "content": "apiVersion: v1\nkind: PersistentVolumeClaim\nmetadata:\n  name: data-pvc\nspec:\n  accessModes:\n  - ReadWriteOnce\n  resources:\n    requests:\n      storage: 1Gi"
+    },
+    {
+      "type": "yaml",
+      "name": "pod-with-volume.yaml",
+      "content": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: volume-test\nspec:\n  containers:\n  - name: busybox\n    image: busybox:latest\n    command: ['sh', '-c', 'sleep 3600']\n    volumeMounts:\n    - name: data\n      mountPath: /data\n  volumes:\n  - name: data\n    persistentVolumeClaim:\n      claimName: data-pvc"
+    }
+  ]
+}

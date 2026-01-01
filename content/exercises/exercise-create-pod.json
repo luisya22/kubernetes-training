@@ -1,0 +1,112 @@
+{
+  "id": "exercise-create-pod",
+  "lessonId": "beginner-pods",
+  "title": "Create Your First Pod",
+  "description": "Learn how to create and manage a simple Pod in Kubernetes using a pre-built nginx image",
+  "difficulty": "beginner",
+  "estimatedTime": 15,
+  "steps": [
+    {
+      "id": "step-1",
+      "order": 1,
+      "instruction": "Create a Pod named 'my-nginx' running the nginx:latest image. You can use either the imperative command (kubectl run) or the declarative approach (YAML file provided in resources below).",
+      "expectedOutcome": "Pod should be created and running. Verify with: kubectl get pods",
+      "hints": [
+        "Quick method: kubectl run my-nginx --image=nginx:latest",
+        "YAML method: Use the pod-template.yaml from resources below, then run: kubectl apply -f pod-template.yaml",
+        "Check pod status: kubectl get pods",
+        "View pod details: kubectl describe pod my-nginx",
+        "The nginx:latest image will be automatically pulled from Docker Hub"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get pod my-nginx -o jsonpath='{.status.phase}'",
+            "expectedOutput": "Running"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-2",
+      "order": 2,
+      "instruction": "List all pods in the current namespace to see your newly created pod. This is one of the most common kubectl commands you'll use.",
+      "expectedOutcome": "You should see 'my-nginx' pod listed with status 'Running'",
+      "hints": [
+        "Use: kubectl get pods",
+        "You can also use the short form: kubectl get po",
+        "For more details, add -o wide: kubectl get pods -o wide",
+        "This command shows all pods in the default namespace"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get pod my-nginx -o jsonpath='{.metadata.name}'",
+            "expectedOutput": "my-nginx"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-3",
+      "order": 3,
+      "instruction": "View the logs from your nginx pod to confirm it's running correctly.",
+      "expectedOutcome": "You should see nginx startup logs",
+      "hints": [
+        "Use: kubectl logs my-nginx",
+        "You should see messages about nginx starting up",
+        "If the pod isn't ready yet, wait a few seconds and try again",
+        "Logs are essential for debugging applications in Kubernetes"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get pod my-nginx -o jsonpath='{.status.containerStatuses[0].ready}'",
+            "expectedOutput": "true"
+          }
+        ]
+      }
+    },
+    {
+      "id": "step-4",
+      "order": 4,
+      "instruction": "Clean up by deleting the pod. This is important to free up cluster resources.",
+      "expectedOutcome": "Pod should be deleted successfully. Verify with: kubectl get pods",
+      "hints": [
+        "Use: kubectl delete pod my-nginx",
+        "Wait a few seconds for the deletion to complete",
+        "Verify deletion: kubectl get pods",
+        "The pod should no longer appear in the list"
+      ],
+      "validation": {
+        "type": "kubernetes",
+        "checks": [
+          {
+            "command": "kubectl get pods -o json | grep -q '\"name\": \"my-nginx\"' && echo 'exists' || echo 'deleted'",
+            "expectedOutput": "deleted"
+          }
+        ]
+      }
+    }
+  ],
+  "resources": [
+    {
+      "type": "yaml",
+      "name": "pod-template.yaml",
+      "content": "apiVersion: v1\nkind: Pod\nmetadata:\n  name: my-nginx\n  labels:\n    app: nginx\nspec:\n  containers:\n  - name: nginx\n    image: nginx:latest\n    ports:\n    - containerPort: 80"
+    },
+    {
+      "type": "info",
+      "name": "About the nginx Image",
+      "content": "This exercise uses the official nginx image from Docker Hub (nginx:latest). This is a public image that will be automatically downloaded by Kubernetes when you create the pod. No manual image building or pushing is required!"
+    },
+    {
+      "type": "commands",
+      "name": "Quick Command Reference",
+      "content": "# Create pod (imperative)\nkubectl run my-nginx --image=nginx:latest\n\n# Create pod (declarative)\nkubectl apply -f pod-template.yaml\n\n# Check pod status\nkubectl get pods\nkubectl get pod my-nginx\n\n# View pod details\nkubectl describe pod my-nginx\n\n# View pod logs\nkubectl logs my-nginx\n\n# Delete pod\nkubectl delete pod my-nginx"
+    }
+  ]
+}

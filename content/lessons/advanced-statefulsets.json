@@ -1,0 +1,86 @@
+{
+  "id": "advanced-statefulsets",
+  "title": "StatefulSets for Stateful Applications",
+  "level": "advanced",
+  "order": 1,
+  "concepts": ["statefulsets", "stateful-apps", "persistent-identity", "ordered-deployment"],
+  "content": {
+    "introduction": "StatefulSets manage stateful applications that require stable network identities, persistent storage, and ordered deployment and scaling. They are ideal for databases, message queues, and other applications that maintain state.",
+    "sections": [
+      {
+        "title": "StatefulSets vs Deployments",
+        "content": "Unlike Deployments, StatefulSets provide: stable, unique network identifiers; stable, persistent storage; ordered, graceful deployment and scaling; and ordered, automated rolling updates.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: apps/v1\nkind: StatefulSet\nmetadata:\n  name: mongodb\nspec:\n  serviceName: mongodb-service\n  replicas: 3\n  selector:\n    matchLabels:\n      app: mongodb\n  template:\n    metadata:\n      labels:\n        app: mongodb\n    spec:\n      containers:\n      - name: mongodb\n        image: mongo:5.0\n        ports:\n        - containerPort: 27017\n        volumeMounts:\n        - name: data\n          mountPath: /data/db\n  volumeClaimTemplates:\n  - metadata:\n      name: data\n    spec:\n      accessModes: [\"ReadWriteOnce\"]\n      resources:\n        requests:\n          storage: 10Gi",
+            "explanation": "This StatefulSet creates 3 MongoDB replicas with stable names (mongodb-0, mongodb-1, mongodb-2) and persistent storage for each."
+          }
+        ]
+      },
+      {
+        "title": "Stable Network Identity",
+        "content": "Each Pod in a StatefulSet gets a stable hostname based on the StatefulSet name and ordinal index. A headless Service provides DNS entries for each Pod.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: v1\nkind: Service\nmetadata:\n  name: mongodb-service\nspec:\n  clusterIP: None  # Headless service\n  selector:\n    app: mongodb\n  ports:\n  - port: 27017\n    targetPort: 27017",
+            "explanation": "This headless Service (clusterIP: None) creates DNS entries for each Pod: mongodb-0.mongodb-service, mongodb-1.mongodb-service, etc."
+          },
+          {
+            "language": "bash",
+            "code": "# Access specific Pod by stable hostname\nmongo mongodb-0.mongodb-service:27017\n\n# List all Pods in StatefulSet\nkubectl get pods -l app=mongodb",
+            "explanation": "Pods can be accessed by their stable DNS names, which persist across rescheduling."
+          }
+        ]
+      },
+      {
+        "title": "Persistent Storage with VolumeClaimTemplates",
+        "content": "StatefulSets use volumeClaimTemplates to automatically create PersistentVolumeClaims for each Pod. Each Pod gets its own dedicated storage that persists across Pod restarts.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "volumeClaimTemplates:\n- metadata:\n    name: data\n  spec:\n    accessModes: [\"ReadWriteOnce\"]\n    storageClassName: fast-ssd\n    resources:\n      requests:\n        storage: 50Gi",
+            "explanation": "This template creates PVCs named data-mongodb-0, data-mongodb-1, etc., each with 50GB of fast SSD storage."
+          }
+        ]
+      },
+      {
+        "title": "Ordered Deployment and Scaling",
+        "content": "StatefulSets deploy and scale Pods in order (0, 1, 2, ...) and wait for each Pod to be Running and Ready before proceeding to the next. Scaling down happens in reverse order.",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# Scale StatefulSet\nkubectl scale statefulset mongodb --replicas=5\n\n# Watch Pods being created in order\nkubectl get pods -l app=mongodb --watch\n\n# Delete StatefulSet but keep Pods\nkubectl delete statefulset mongodb --cascade=orphan",
+            "explanation": "Scaling up creates mongodb-3, then mongodb-4. Scaling down deletes mongodb-4, then mongodb-3."
+          }
+        ]
+      },
+      {
+        "title": "Update Strategies",
+        "content": "StatefulSets support RollingUpdate (default) and OnDelete update strategies. RollingUpdate updates Pods in reverse ordinal order.",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: apps/v1\nkind: StatefulSet\nmetadata:\n  name: mongodb\nspec:\n  updateStrategy:\n    type: RollingUpdate\n    rollingUpdate:\n      partition: 2\n  # ... rest of spec",
+            "explanation": "With partition: 2, only Pods with ordinal >= 2 are updated. This enables canary deployments for stateful apps."
+          }
+        ]
+      },
+      {
+        "title": "Common Use Cases",
+        "content": "StatefulSets are ideal for: databases (MySQL, PostgreSQL, MongoDB), distributed systems (Kafka, Zookeeper, etcd), and any application requiring stable network identity or persistent storage.",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# View StatefulSet status\nkubectl get statefulset mongodb\n\n# View PVCs created by StatefulSet\nkubectl get pvc -l app=mongodb\n\n# Describe StatefulSet for events\nkubectl describe statefulset mongodb",
+            "explanation": "Monitor StatefulSet health and verify PVCs are properly bound."
+          }
+        ]
+      }
+    ],
+    "summary": "StatefulSets provide the guarantees needed for stateful applications: stable identities, persistent storage, and ordered operations. Use them for databases and distributed systems that require these properties."
+  },
+  "exercises": ["exercise-statefulsets"],
+  "prerequisites": ["intermediate-volumes", "intermediate-hpa"]
+}

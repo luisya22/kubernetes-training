@@ -1,0 +1,69 @@
+{
+  "id": "beginner-services",
+  "title": "Services and Networking",
+  "level": "beginner",
+  "order": 3,
+  "concepts": ["services", "networking", "service-types", "endpoints"],
+  "content": {
+    "introduction": "Services provide a stable network endpoint to access a set of Pods. They enable communication between different parts of your application and expose applications to external traffic.",
+    "sections": [
+      {
+        "title": "Understanding Services",
+        "content": "A Service is an abstraction that defines a logical set of Pods and a policy to access them. Services use label selectors to determine which Pods to route traffic to.\n\nTo create a Service, you define it in a YAML file:",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: v1\nkind: Service\nmetadata:\n  name: nginx-service\nspec:\n  selector:\n    app: nginx\n  ports:\n  - protocol: TCP\n    port: 80\n    targetPort: 80\n  type: ClusterIP",
+            "explanation": "This Service exposes Pods with the label 'app: nginx' on port 80. The ClusterIP type makes it accessible only within the cluster."
+          },
+          {
+            "language": "bash",
+            "code": "# Save the YAML above to service.yaml, then create it:\nkubectl apply -f service.yaml\n\n# View all services:\nkubectl get services\n\n# Get detailed service information:\nkubectl describe service nginx-service\n\n# Test the service from within the cluster:\nkubectl run test-pod --image=busybox -it --rm -- wget -O- http://nginx-service:80",
+            "explanation": "Use 'kubectl apply' to create the service. The service will automatically route traffic to pods matching the selector labels."
+          }
+        ]
+      },
+      {
+        "title": "Service Types",
+        "content": "Kubernetes supports different Service types for different use cases:\n\n• ClusterIP (default): Internal access only, within the cluster\n• NodePort: Exposes the service on each node's IP at a static port\n• LoadBalancer: Creates an external load balancer (cloud providers)\n• ExternalName: Maps to a DNS name",
+        "codeExamples": [
+          {
+            "language": "yaml",
+            "code": "apiVersion: v1\nkind: Service\nmetadata:\n  name: nginx-nodeport\nspec:\n  type: NodePort\n  selector:\n    app: nginx\n  ports:\n  - port: 80\n    targetPort: 80\n    nodePort: 30080",
+            "explanation": "This NodePort Service exposes the application on port 30080 of every node in the cluster. You can access it at <NodeIP>:30080."
+          },
+          {
+            "language": "bash",
+            "code": "# Create the NodePort service:\nkubectl apply -f service-nodeport.yaml\n\n# Find the node IP:\nkubectl get nodes -o wide\n\n# Access the service (replace NODE_IP with actual IP):\ncurl http://NODE_IP:30080",
+            "explanation": "NodePort services are useful for development or when you don't have a cloud load balancer available."
+          }
+        ]
+      },
+      {
+        "title": "Service Discovery",
+        "content": "Kubernetes provides DNS-based service discovery. Pods can access services using the service name as a hostname. This makes it easy to connect different parts of your application.",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# From within a Pod, you can access services by name:\ncurl http://nginx-service:80\n\n# Or use the fully qualified domain name:\ncurl http://nginx-service.default.svc.cluster.local:80",
+            "explanation": "Pods can reach the nginx-service using its DNS name within the cluster. The format is: <service-name>.<namespace>.svc.cluster.local"
+          }
+        ]
+      },
+      {
+        "title": "Common Service Commands",
+        "content": "Essential kubectl commands for working with Services:",
+        "codeExamples": [
+          {
+            "language": "bash",
+            "code": "# Create a service from YAML:\nkubectl apply -f service.yaml\n\n# Create a service for an existing deployment:\nkubectl expose deployment nginx-deployment --port=80 --type=ClusterIP\n\n# List all services:\nkubectl get services\n\n# Get service details:\nkubectl describe service nginx-service\n\n# See which pods a service is routing to:\nkubectl get endpoints nginx-service\n\n# Delete a service:\nkubectl delete service nginx-service",
+            "explanation": "The 'expose' command is a quick way to create a service for an existing deployment. The 'endpoints' command shows you which pod IPs the service is routing traffic to."
+          }
+        ]
+      }
+    ],
+    "summary": "Services provide stable networking for your Pods, enabling reliable communication within your cluster and exposure to external traffic."
+  },
+  "exercises": ["exercise-create-service"],
+  "prerequisites": ["beginner-deployments"]
+}

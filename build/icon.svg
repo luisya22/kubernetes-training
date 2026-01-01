@@ -1,0 +1,25 @@
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#326CE5" rx="64"/>
+  
+  <!-- Kubernetes-style hexagon -->
+  <g transform="translate(256, 256)">
+    <!-- Outer hexagon -->
+    <path d="M 0,-120 L 104,-60 L 104,60 L 0,120 L -104,60 L -104,-60 Z" 
+          fill="#FFFFFF" stroke="#326CE5" stroke-width="8"/>
+    
+    <!-- Inner circle -->
+    <circle cx="0" cy="0" r="80" fill="#326CE5"/>
+    
+    <!-- K8s text -->
+    <text x="0" y="20" font-family="Arial, sans-serif" font-size="72" 
+          font-weight="bold" fill="#FFFFFF" text-anchor="middle">K8s</text>
+  </g>
+  
+  <!-- Training badge -->
+  <rect x="340" y="340" width="140" height="140" fill="#FF6B6B" rx="20"/>
+  <text x="410" y="395" font-family="Arial, sans-serif" font-size="48" 
+        font-weight="bold" fill="#FFFFFF" text-anchor="middle">T</text>
+  <text x="410" y="440" font-family="Arial, sans-serif" font-size="24" 
+        fill="#FFFFFF" text-anchor="middle">TRAIN</text>
+</svg>

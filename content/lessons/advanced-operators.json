@@ -1,0 +1,20 @@
+{
+  "id": "advanced-operators",
+  "title": "Kubernetes Operators and Custom Resources",
+  "level": "advanced",
+  "order": 0,
+  "concepts": ["operators", "custom-resources", "crds"],
+  "content": {
+    "introduction": "Operators are software extensions to Kubernetes that make use of custom resources to manage applications and their components.",
+    "sections": [
+      {
+        "title": "Understanding Operators",
+        "content": "Operators follow Kubernetes principles, notably the control loop pattern. They watch for changes to specific resources and take action to reconcile the current state with the desired state.",
+        "diagrams": ["operator-pattern.png"]
+      }
+    ],
+    "summary": "Operators extend Kubernetes capabilities by encoding operational knowledge into software."
+  },
+  "exercises": ["exercise-operators"],
+  "prerequisites": ["intermediate-hpa"]
+}
