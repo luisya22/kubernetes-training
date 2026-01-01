@@ -1,0 +1,55 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          body: |
+            ## 🎓 Kubernetes Training Application ${{ github.ref_name }}
+            
+            Interactive desktop application for learning Kubernetes from beginner to advanced levels.
+            
+            ### 📦 Installation
+            
+            Installers will be added soon. For now, you can build from source:
+            
+            ```bash
+            git clone https://github.com/${{ github.repository }}.git
+            cd kubernetes-training
+            npm install
+            npm run build
+            npm run package
+            ```
+            
+            ### ✅ Prerequisites
+            
+            - Node.js 18+
+            - Docker Desktop (includes Kubernetes) or Minikube
+            - kubectl command-line tool
+            - 4GB RAM minimum, 8GB recommended
+            - 10GB free disk space
+            
+            ### 📚 Documentation
+            
+            See the [README](https://github.com/${{ github.repository }}) for full documentation.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
