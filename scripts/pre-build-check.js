@@ -17,10 +17,14 @@ console.log('🔍 Running pre-build checks...\n');
 const requiredDirs = [
   'content/lessons',
   'content/exercises',
-  'content/microservices',
-  'dist/main',
-  'dist/renderer'
+  'content/microservices'
 ];
+
+// Only check dist directories if not in CI or if they should exist
+const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+if (!isCI) {
+  requiredDirs.push('dist/main', 'dist/renderer');
+}
 
 console.log('📁 Checking required directories...');
 requiredDirs.forEach(dir => {
@@ -31,20 +35,24 @@ requiredDirs.forEach(dir => {
   }
 });
 
-// Check that dist files exist
-console.log('\n📦 Checking build output...');
-const requiredDistFiles = [
-  'dist/main/main.js',
-  'dist/renderer/index.html'
-];
+// Check that dist files exist (skip in CI, as build hasn't run yet)
+if (!isCI) {
+  console.log('\n📦 Checking build output...');
+  const requiredDistFiles = [
+    'dist/main/main.js',
+    'dist/renderer/index.html'
+  ];
 
-requiredDistFiles.forEach(file => {
-  if (!fs.existsSync(file)) {
-    errors.push(`Missing build file: ${file}. Run 'npm run build' first.`);
-  } else {
-    console.log(`  ✓ ${file}`);
-  }
-});
+  requiredDistFiles.forEach(file => {
+    if (!fs.existsSync(file)) {
+      errors.push(`Missing build file: ${file}. Run 'npm run build' first.`);
+    } else {
+      console.log(`  ✓ ${file}`);
+    }
+  });
+} else {
+  console.log('\n📦 Skipping build output check (CI environment)...');
+}
 
 // Check content files
 console.log('\n📚 Checking content files...');
